@@ -94,7 +94,7 @@ if uploaded_file:
     # 模型评分
     y_pred = model.predict(X_test)
     score = r2_score(y_test, y_pred)
-    st.success(f"模型 R² 分数：{score:.4f}")
+    # st.success(f"模型 R² 分数：{score:.4f}")
 
     st.markdown("---")
 
@@ -204,6 +204,7 @@ if uploaded_file:
                 ax[1].set_xlabel("场次")
                 ax[1].set_ylabel("累计营收")
                 st.pyplot(fig)
+
 
 
 
