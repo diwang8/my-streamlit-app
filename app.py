@@ -6,10 +6,12 @@ import matplotlib
 import matplotlib.font_manager as fm
 import os
 
-font_path = "NotoSansSC-VariableFont_wght.ttf"  # 放在项目根目录
+font_path = "NotoSansSC-VariableFont_wght.ttf"
 if os.path.exists(font_path):
     my_font = fm.FontProperties(fname=font_path)
-    plt.rcParams['font.family'] = my_font.get_name()
+    matplotlib.rcParams['font.family'] = my_font.get_name()
+    matplotlib.rcParams['axes.unicode_minus'] = False  # 避免负号显示为方块
+
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import Ridge
@@ -66,13 +68,11 @@ if uploaded_file:
     X_train, X_test, y_train, y_test = train_test_split(X, y_raw, test_size=0.2, random_state=42)
 
     # 模型选择
-    model_name = st.selectbox("选择模型", [
-        "Random Forest", 
-        "Ridge Regression", 
-        "XGBoost", 
-        "LightGBM", 
-        "MLP (多层感知机)"
-    ])
+    if predict_average:
+        model_options = ["Random Forest", "Ridge Regression", "XGBoost", "LightGBM", "MLP (多层感知机)"]
+    else:
+        model_options = ["Random Forest", "Ridge Regression", "LightGBM", "MLP (多层感知机)"] 
+    model_name = st.selectbox("选择模型", model_options)
 
     if model_name == "Random Forest":
         model = RandomForestRegressor(n_estimators=100, random_state=42)
@@ -203,6 +203,7 @@ if uploaded_file:
                 ax[1].set_xlabel("场次")
                 ax[1].set_ylabel("累计营收")
                 st.pyplot(fig)
+
 
 
 
