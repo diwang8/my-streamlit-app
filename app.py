@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 import matplotlib.font_manager as fm
+import os
 
 font_path = "NotoSansSC-VariableFont_wght.ttf"  # 放在项目根目录
 if os.path.exists(font_path):
@@ -202,6 +203,7 @@ if uploaded_file:
                 ax[1].set_xlabel("场次")
                 ax[1].set_ylabel("累计营收")
                 st.pyplot(fig)
+
 
 
 
