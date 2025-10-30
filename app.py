@@ -8,9 +8,10 @@ import os
 
 font_path = "NotoSansSC-VariableFont_wght.ttf"
 if os.path.exists(font_path):
-    my_font = fm.FontProperties(fname=font_path)
-    matplotlib.rcParams['font.family'] = my_font.get_name()
-    matplotlib.rcParams['axes.unicode_minus'] = False  # 避免负号显示为方块
+    fm.fontManager.addfont(font_path)
+    font_name = fm.FontProperties(fname=font_path).get_name()
+    matplotlib.rcParams['font.family'] = font_name
+    matplotlib.rcParams['axes.unicode_minus'] = False
 
 
 from sklearn.ensemble import RandomForestRegressor
@@ -203,6 +204,7 @@ if uploaded_file:
                 ax[1].set_xlabel("场次")
                 ax[1].set_ylabel("累计营收")
                 st.pyplot(fig)
+
 
 
 
