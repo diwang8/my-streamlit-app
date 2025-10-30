@@ -3,7 +3,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+import os
+matplotlib.rcParams['font.family'] = 'sans-serif'
+matplotlib.rcParams['font.sans-serif'] = ['DejaVu Sans']  # 替代 SimHei
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 from sklearn.ensemble import RandomForestRegressor
@@ -198,3 +200,4 @@ if uploaded_file:
                 ax[1].set_xlabel("场次")
                 ax[1].set_ylabel("累计营收")
                 st.pyplot(fig)
+
