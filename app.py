@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import matplotlib.font_manager as fm
 
-font_path = "SimHei.ttf"  # 放在项目根目录
+font_path = "NotoSansSC-VariableFont_wght.ttf"  # 放在项目根目录
 if os.path.exists(font_path):
     my_font = fm.FontProperties(fname=font_path)
     plt.rcParams['font.family'] = my_font.get_name()
@@ -202,5 +202,6 @@ if uploaded_file:
                 ax[1].set_xlabel("场次")
                 ax[1].set_ylabel("累计营收")
                 st.pyplot(fig)
+
 
 
