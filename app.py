@@ -191,19 +191,49 @@ if uploaded_file:
 
         if st.button("🚀 预测新剧营收"):
             pred = model.predict(input_df)[0]
+
+            # 保存上一次预测结果
+            if "last_pred" not in st.session_state:
+                st.session_state.last_pred = None
+
+            # 显示预测结果
             if predict_average:
                 st.metric("预测场均营收", f"{pred:.2f} 元")
+
+                # 如果有上一次预测，进行对比
+                if st.session_state.last_pred is not None:
+                    fig, ax = plt.subplots()
+                    ax.bar(["上一次预测", "本次预测"], [st.session_state.last_pred, pred], color=["#FF9800", "#2196F3"])
+                    ax.set_title("场均营收预测对比")
+                    ax.set_ylabel("营收")
+                    st.pyplot(fig)
             else:
                 fig, ax = plt.subplots(1, 2, figsize=(12, 4))
-                ax[0].bar(range(1, 22), pred)
-                ax[0].set_title("每场营收预测")
+
+                ax[0].bar(range(1, 22), pred, color="#2196F3", label="本次预测")
+                if st.session_state.last_pred is not None:
+                    ax[0].bar(range(1, 22), st.session_state.last_pred, color="#FF9800", alpha=0.5, label="上一次预测")
+                ax[0].set_title("每场营收预测对比")
                 ax[0].set_xlabel("场次")
                 ax[0].set_ylabel("营收")
-                ax[1].plot(np.cumsum(pred), marker='o')
-                ax[1].set_title("累计营收预测")
+                ax[0].legend()
+
+                ax[1].plot(np.cumsum(pred), marker='o', label="本次预测", color="#2196F3")
+                if st.session_state.last_pred is not None:
+                    ax[1].plot(np.cumsum(st.session_state.last_pred), marker='o', label="上一次预测", color="#FF9800")
+                ax[1].set_title("累计营收预测对比")
                 ax[1].set_xlabel("场次")
                 ax[1].set_ylabel("累计营收")
+                ax[1].legend()
+
                 st.pyplot(fig)
+
+            # 更新 session 中的预测结果
+            st.session_state.last_pred = pred
+
+
+
+
 
 
 
