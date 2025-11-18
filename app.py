@@ -192,7 +192,7 @@ if uploaded_file:
         if st.button("🚀 预测新剧营收"):
             pred = model.predict(input_df)[0]
 
-            # 初始化 session_state
+    # 初始化 session_state
             if "last_pred" not in st.session_state:
                 st.session_state.last_pred = None
             if "last_input" not in st.session_state:
@@ -214,7 +214,9 @@ if uploaded_file:
             st.subheader("📈 预测结果")
             if predict_average:
                 st.metric("预测场均营收", f"{pred:.2f} 元")
-                if st.session_state.last_pred is not None:
+
+                # 仅当上一次预测是标量时才绘图
+                if st.session_state.last_pred is not None and np.isscalar(st.session_state.last_pred):
                     fig, ax = plt.subplots()
                     ax.bar(["上一次预测", "本次预测"], [st.session_state.last_pred, pred], color=["#FF9800", "#2196F3"])
                     ax.set_title("场均营收预测对比")
@@ -223,7 +225,7 @@ if uploaded_file:
             else:
                 fig, ax = plt.subplots(1, 2, figsize=(12, 4))
                 ax[0].bar(range(1, 22), pred, color="#2196F3", label="本次预测")
-                if st.session_state.last_pred is not None:
+                if st.session_state.last_pred is not None and isinstance(st.session_state.last_pred, (list, np.ndarray)):
                     ax[0].bar(range(1, 22), st.session_state.last_pred, color="#FF9800", alpha=0.5, label="上一次预测")
                 ax[0].set_title("每场营收预测对比")
                 ax[0].set_xlabel("场次")
@@ -231,7 +233,7 @@ if uploaded_file:
                 ax[0].legend()
 
                 ax[1].plot(np.cumsum(pred), marker='o', label="本次预测", color="#2196F3")
-                if st.session_state.last_pred is not None:
+                if st.session_state.last_pred is not None and isinstance(st.session_state.last_pred, (list, np.ndarray)):
                     ax[1].plot(np.cumsum(st.session_state.last_pred), marker='o', label="上一次预测", color="#FF9800")
                 ax[1].set_title("累计营收预测对比")
                 ax[1].set_xlabel("场次")
@@ -240,8 +242,8 @@ if uploaded_file:
                 st.pyplot(fig)
 
             # 保存当前输入和预测
-            st.session_state.last_pred = pred
             st.session_state.last_input = input_df.to_dict(orient="records")
+            st.session_state.last_pred = float(pred) if predict_average else np.array(pred)
 
             # 导出结果
             st.subheader("💾 导出预测结果")
@@ -260,6 +262,8 @@ if uploaded_file:
                 file_name="预测结果.csv",
                 mime="text/csv"
             )
+
+
 
 
 
