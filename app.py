@@ -192,15 +192,28 @@ if uploaded_file:
         if st.button("🚀 预测新剧营收"):
             pred = model.predict(input_df)[0]
 
-            # 保存上一次预测结果
+            # 初始化 session_state
             if "last_pred" not in st.session_state:
                 st.session_state.last_pred = None
+            if "last_input" not in st.session_state:
+                st.session_state.last_input = None
+
+            # 显示输入参数对比
+            st.subheader("📋 输入参数对比")
+            current_input_display = input_df.copy()
+            last_input_display = pd.DataFrame(st.session_state.last_input) if st.session_state.last_input is not None else None
+
+            if last_input_display is not None:
+                compare_df = pd.concat([last_input_display.T, current_input_display.T], axis=1)
+                compare_df.columns = ["上一次输入", "本次输入"]
+                st.dataframe(compare_df)
+            else:
+                st.dataframe(current_input_display.T.rename(columns={0: "本次输入"}))
 
             # 显示预测结果
+            st.subheader("📈 预测结果")
             if predict_average:
                 st.metric("预测场均营收", f"{pred:.2f} 元")
-
-                # 如果有上一次预测，进行对比
                 if st.session_state.last_pred is not None:
                     fig, ax = plt.subplots()
                     ax.bar(["上一次预测", "本次预测"], [st.session_state.last_pred, pred], color=["#FF9800", "#2196F3"])
@@ -209,7 +222,6 @@ if uploaded_file:
                     st.pyplot(fig)
             else:
                 fig, ax = plt.subplots(1, 2, figsize=(12, 4))
-
                 ax[0].bar(range(1, 22), pred, color="#2196F3", label="本次预测")
                 if st.session_state.last_pred is not None:
                     ax[0].bar(range(1, 22), st.session_state.last_pred, color="#FF9800", alpha=0.5, label="上一次预测")
@@ -225,11 +237,31 @@ if uploaded_file:
                 ax[1].set_xlabel("场次")
                 ax[1].set_ylabel("累计营收")
                 ax[1].legend()
-
                 st.pyplot(fig)
 
-            # 更新 session 中的预测结果
+            # 保存当前输入和预测
             st.session_state.last_pred = pred
+            st.session_state.last_input = input_df.to_dict(orient="records")
+
+            # 导出结果
+            st.subheader("💾 导出预测结果")
+            export_df = input_df.copy()
+            if predict_average:
+                export_df["预测场均营收"] = pred
+            else:
+                for i in range(21):
+                    export_df[f"第{i+1}场预测营收"] = pred[i]
+                export_df["累计预测营收"] = np.sum(pred)
+
+            csv = export_df.to_csv(index=False).encode("utf-8-sig")
+            st.download_button(
+                label="📥 下载预测结果 CSV",
+                data=csv,
+                file_name="预测结果.csv",
+                mime="text/csv"
+            )
+
+
 
 
 
