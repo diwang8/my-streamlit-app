@@ -73,13 +73,13 @@ if uploaded_file:
         if col in X_raw.columns:
             X_raw[col] = X_raw[col].map(mapping).fillna(X_raw[col])
 
-# 自动识别分类字段（非数值型）
-categorical_cols = X_raw.select_dtypes(include=["object"]).columns.tolist()
-for col in categorical_cols:
-    X_raw[col] = X_raw[col].astype(str)
+    # 自动识别分类字段（非数值型）
+    categorical_cols = X_raw.select_dtypes(include=["object"]).columns.tolist()
+    for col in categorical_cols:
+        X_raw[col] = X_raw[col].astype(str)
 
-# one-hot 编码
-X = pd.get_dummies(X_raw)
+    # one-hot 编码
+    X = pd.get_dummies(X_raw)
 
 
     # 拆分训练集和测试集
@@ -279,6 +279,7 @@ X = pd.get_dummies(X_raw)
                 file_name="预测结果.csv",
                 mime="text/csv"
             )
+
 
 
 
