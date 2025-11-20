@@ -48,9 +48,12 @@ if uploaded_file:
     # 选择是否只预测场均营收
     predict_average = st.checkbox("✅ 只预测场均营收")
 
-    # 选择目标列（第1场~第21场营收）
+    # 自动识别营收列（包含“第”和“场营收”）
     revenue_cols = [col for col in df.columns if "第" in col and "场营收" in col]
-    feature_cols = [col for col in df.columns if col not in revenue_cols and col != "剧目名称"]
+
+    # 自动识别特征列（排除剧目名称和营收列）
+    exclude_cols = ["剧目名称"] + revenue_cols
+    feature_cols = [col for col in df.columns if col not in exclude_cols]
 
     # 构造训练数据
     X_raw = df[feature_cols].copy()
@@ -59,11 +62,25 @@ if uploaded_file:
     if predict_average:
         y_raw = y_raw.mean(axis=1)  # Series
 
-    categorical_cols = ["剧场区域"]
-    for col in categorical_cols:
+    # 自动映射字段（如类型、是否常驻等）
+    mapping_fields = {
+        "类型": type_map,
+        "是否常驻": {"否": 0, "是": 1, "N": 0, "Y": 1},
+        "剧场规模": scale_map,
+        "剧场区域": region_map
+    }
+    for col, mapping in mapping_fields.items():
         if col in X_raw.columns:
-            X_raw[col] = X_raw[col].astype(str)
-    X = pd.get_dummies(X_raw)
+            X_raw[col] = X_raw[col].map(mapping).fillna(X_raw[col])
+
+# 自动识别分类字段（非数值型）
+categorical_cols = X_raw.select_dtypes(include=["object"]).columns.tolist()
+for col in categorical_cols:
+    X_raw[col] = X_raw[col].astype(str)
+
+# one-hot 编码
+X = pd.get_dummies(X_raw)
+
 
     # 拆分训练集和测试集
     X_train, X_test, y_train, y_test = train_test_split(X, y_raw, test_size=0.2, random_state=42)
@@ -262,6 +279,7 @@ if uploaded_file:
                 file_name="预测结果.csv",
                 mime="text/csv"
             )
+
 
 
 
