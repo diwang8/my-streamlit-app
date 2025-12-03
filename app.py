@@ -317,6 +317,35 @@ if uploaded_file:
                 ax[1].set_ylabel("累计营收")
                 ax[1].legend()
                 st.pyplot(fig)
+            # 计算收益
+            num_shows = 21 if not predict_average else 1
+            admin_cost = monthly_admin * (period / 30)
+            recurring_cost = per_show_cost * num_shows
+            total_cost = one_time_cost + recurring_cost + admin_cost
+
+            st.subheader("💵 成本与收益分析")
+            st.markdown(f"- 一次性投入成本：**{one_time_cost:,.2f} 元**")
+            st.markdown(f"- 每场成本：**{per_show_cost:,.2f} 元** × {num_shows} 场 = {recurring_cost:,.2f} 元")
+            st.markdown(f"- 管理费用：**{monthly_admin:,.2f} 元/月** × {period} 天 ≈ {admin_cost:,.2f} 元")
+            st.markdown(f"### ✅ 总成本：**{total_cost:,.2f} 元**")
+
+            if not predict_average:
+                profit = pred - per_show_cost
+                cum_profit = np.cumsum(profit)
+
+                fig, ax = plt.subplots(1, 2, figsize=(14, 5))
+                ax[0].bar(np.arange(1, 22), pred, label="营收", color="#2196F3")
+                ax[0].bar(np.arange(1, 22), [per_show_cost]*21, label="成本", color="#FF9800", alpha=0.6)
+                ax[0].bar(np.arange(1, 22), profit, label="收益", color="#4CAF50", alpha=0.6)
+                ax[0].set_title("每场营收 / 成本 / 收益")
+                ax[0].legend()
+
+                ax[1].plot(np.arange(1, 22), cum_profit, marker='o', label="累计收益", color="#4CAF50")
+                ax[1].axhline(y=total_cost, color='red', linestyle='--', label="总成本")
+                ax[1].set_title("累计收益曲线")
+                ax[1].legend()
+
+                st.pyplot(fig)
 
             # 保存当前输入和预测
             st.session_state.last_input = input_df.to_dict(orient="records")
@@ -339,6 +368,7 @@ if uploaded_file:
                 file_name="预测结果.csv",
                 mime="text/csv"
             )
+
 
 
 
