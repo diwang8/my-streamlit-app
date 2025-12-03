@@ -26,6 +26,63 @@ from lightgbm import LGBMRegressor
 st.set_page_config(layout="wide")
 st.title("🎭 剧目营收预测系统")
 
+def collect_cost_inputs():
+    st.markdown("## 💰 成本参数设置")
+
+    st.markdown("### 一次性投入成本")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        cost_director = st.number_input("导演", value=75000)
+        cost_writer = st.number_input("编剧/作词", value=75000)
+        cost_music = st.number_input("音乐创作及编曲", value=75000)
+        cost_recording = st.number_input("音乐录制", value=75000)
+        cost_costume = st.number_input("服装设计与制作", value=50000)
+    with col2:
+        cost_light = st.number_input("灯光设计与落地", value=30000)
+        cost_choreography = st.number_input("编舞设计", value=20000)
+        cost_stage = st.number_input("剧场及舞美设计", value=50000)
+        cost_audio = st.number_input("音效设计", value=30000)
+        cost_acoustics = st.number_input("声场声效设计", value=50000)
+    with col3:
+        cost_visual = st.number_input("视觉设计", value=20000)
+        cost_emergency = st.number_input("应急预算（创作）", value=50000)
+        cost_fire = st.number_input("消防设计+施工", value=300000)
+        cost_hard = st.number_input("硬装设计+施工+监控", value=380000)
+        cost_soft = st.number_input("舞美软装道具+化妆间+吧台", value=380000)
+
+    one_time_cost = sum([
+        cost_director, cost_writer, cost_music, cost_recording, cost_costume,
+        cost_light, cost_choreography, cost_stage, cost_audio, cost_acoustics,
+        cost_visual, cost_emergency, cost_fire, cost_hard, cost_soft
+    ])
+
+    st.markdown("### 持续性投入成本（单位：元/场）")
+    col4, col5, col6 = st.columns(3)
+    with col4:
+        cost_actor = st.number_input("演员", value=6000)
+        cost_makeup = st.number_input("服化", value=700)
+        cost_audio_op = st.number_input("音控", value=500)
+    with col5:
+        cost_light_op = st.number_input("灯", value=500)
+        cost_stage_mgr = st.number_input("舞监", value=500)
+        cost_manager = st.number_input("剧场经理", value=400)
+    with col6:
+        cost_parttime = st.number_input("兼职", value=500)
+        cost_props = st.number_input("消耗型道具", value=800)
+        cost_cleaning = st.number_input("保洁", value=214.29)
+
+    per_show_cost = sum([
+        cost_actor, cost_makeup, cost_audio_op, cost_light_op,
+        cost_stage_mgr, cost_manager, cost_parttime, cost_props, cost_cleaning
+    ])
+
+    st.markdown("### 管理费用")
+    monthly_admin = st.number_input("管理费用（元/月）", value=120000)
+
+    return one_time_cost, per_show_cost, monthly_admin
+
+
+
 # 映射字典
 type_map = {"话剧": 0, "音乐剧": 1}
 resident_map = {"否": 0, "是": 1}
@@ -172,6 +229,9 @@ if uploaded_file:
 
     # 🆕 输入新剧信息进行预测
     with st.expander("🆕 输入新剧信息进行预测"):
+        # 成本输入
+        one_time_cost, per_show_cost, monthly_admin = collect_cost_inputs()
+
         col1, col2 = st.columns(2)
         with col1:
             type_text = st.selectbox("类型", list(type_map.keys()))
@@ -279,6 +339,7 @@ if uploaded_file:
                 file_name="预测结果.csv",
                 mime="text/csv"
             )
+
 
 
 
