@@ -244,7 +244,9 @@ if uploaded_file:
 
     # 🆕 输入新剧信息进行预测
     with st.expander("🆕 输入新剧信息进行预测"):
-        st.markdown("### 🎭 新剧参数设置")
+
+        # 🎭 剧目参数设置（参与模型预测）
+        st.markdown("### 🎭 剧目与场次参数设置")
     
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -256,17 +258,7 @@ if uploaded_file:
     
         region = st.selectbox("剧场区域", list(region_map.keys()))
     
-        input_dict = {
-            "剧目类型": type_map[show_type],
-            "是否常驻": resident_map[is_resident],
-            "剧场规模": scale_map[scale],
-            "剧场区域": region_map[region]
-        }
-    
-        # 获取成本输入
-        one_time_cost, per_show_cost, monthly_admin = collect_cost_inputs()
-    
-        st.markdown("### 📅 基本信息")
+        st.markdown("### 📅 演出周期设置")
         today = pd.to_datetime("2025-12-04")
         max_date = today + pd.DateOffset(years=3)
     
@@ -278,113 +270,120 @@ if uploaded_file:
     
         if end_date < start_date:
             st.warning("结束日期不能早于开始日期")
-        else:
-            st.markdown("### 🗓 每周排期设置")
-            weekday_map = {0: "周一", 1: "周二", 2: "周三", 3: "周四", 4: "周五", 5: "周六", 6: "周日"}
-            time_options = ["不演", "14:30", "19:30", "14:30 和 19:30"]
-            weekly_plan = {}
+            st.stop()
     
-            for i in range(7):
-                choice = st.selectbox(f"{weekday_map[i]}", time_options, key=f"weekday_{i}")
-                if choice == "14:30":
-                    weekly_plan[str(i)] = ["14:30"]
-                elif choice == "19:30":
-                    weekly_plan[str(i)] = ["19:30"]
-                elif choice == "14:30 和 19:30":
-                    weekly_plan[str(i)] = ["14:30", "19:30"]
-                else:
-                    weekly_plan[str(i)] = []
+        st.markdown("### 🗓 每周排期设置")
+        weekday_map = {0: "周一", 1: "周二", 2: "周三", 3: "周四", 4: "周五", 5: "周六", 6: "周日"}
+        time_options = ["不演", "14:30", "19:30", "14:30 和 19:30"]
+        weekly_plan = {}
     
-            all_times = generate_show_schedule(pd.to_datetime(start_date), pd.to_datetime(end_date), weekly_plan)
-            st.success(f"共生成 {len(all_times)} 场")
+        for i in range(7):
+            choice = st.selectbox(f"{weekday_map[i]}", time_options, key=f"weekday_{i}")
+            if choice == "14:30":
+                weekly_plan[str(i)] = ["14:30"]
+            elif choice == "19:30":
+                weekly_plan[str(i)] = ["19:30"]
+            elif choice == "14:30 和 19:30":
+                weekly_plan[str(i)] = ["14:30", "19:30"]
+            else:
+                weekly_plan[str(i)] = []
     
-            # 题材标签输入
-            st.markdown("### 🎬 剧目题材标签（0-1 之间，表示强度）")
-            tags = ["悬疑", "推理", "喜剧", "恐怖", "惊悚", "犯罪", "爱情", "历史", "传记",
+        all_times = generate_show_schedule(pd.to_datetime(start_date), pd.to_datetime(end_date), weekly_plan)
+        st.success(f"共生成 {len(all_times)} 场")
+    
+        st.markdown("### 🎬 剧目题材标签")
+        all_tags = ["悬疑", "推理", "喜剧", "恐怖", "惊悚", "犯罪", "爱情", "历史", "传记",
                     "科幻", "奇幻", "玄幻", "灾难", "社会现实", "家庭伦理", "艺术文化", "战争", "职场", "其他"]
-            tag_values = {}
-            for i in range(0, len(tags), 3):
-                cols = st.columns(3)
-                for j, tag in enumerate(tags[i:i+3]):
-                    with cols[j]:
-                        tag_values[tag] = st.slider(tag, 0.0, 1.0, 0.0, step=0.1)
+        selected_tags = st.multiselect("请选择题材标签（可多选）", options=all_tags)
+        tag_values = {tag: (1 if tag in selected_tags else 0) for tag in all_tags}
     
-            # 周期 + 票价
-            st.markdown("### 🎫 周期与票价")
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                period = st.number_input("周期（天）", value=(end_date - start_date).days)
-            with col2:
-                max_price = st.number_input("最高票价", value=680)
-            with col3:
-                min_price = st.number_input("最低票价", value=80)
+        st.markdown("### 🎫 票价设置")
+        col1, col2 = st.columns(2)
+        with col1:
+            max_price = st.number_input("最高票价", value=680)
+        with col2:
+            min_price = st.number_input("最低票价", value=80)
     
-            # 预测按钮
-            if st.button("开始预测"):
-                base_input = input_dict.copy()
-                schedule_df = pd.DataFrame({
-                    "场次时间": all_times,
-                    "星期几": [dt.weekday() for dt in all_times],
-                    "是否下午场": [1 if dt.hour == 14 else 0 for dt in all_times],
-                    "是否周末": [1 if dt.weekday() >= 5 else 0 for dt in all_times],
-                    "是否节假日": [1 if dt.normalize() in holiday_list else 0 for dt in all_times],
-                    "距开演首日的天数": [(dt - all_times[0]).days for dt in all_times],
-                    "周期": period,
-                    "最高价格": max_price,
-                    "最低价格": min_price
-                })
+        # 💰 成本参数设置（不参与模型预测）
+        st.markdown("### 💰 成本参数设置（仅用于收益分析）")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            one_time_cost = st.number_input("一次性成本", value=50000)
+        with col2:
+            per_show_cost = st.number_input("每场演出成本", value=300)
+        with col3:
+            monthly_admin = st.number_input("每月管理成本", value=8000)
     
-                for k, v in base_input.items():
-                    schedule_df[k] = v
-                for tag, val in tag_values.items():
-                    schedule_df[tag] = val
+        # 🚀 开始预测
+        if st.button("开始预测"):
+            # 构建输入数据
+            input_dict = {
+                "剧目类型": type_map[show_type],
+                "是否常驻": resident_map[is_resident],
+                "剧场规模": scale_map[scale],
+                "剧场区域": region_map[region]
+            }
     
-                # one-hot 编码
-                X_new = pd.get_dummies(schedule_df.drop(columns=["场次时间"]))
-                X_new = X_new.reindex(columns=X.columns, fill_value=0)
+            schedule_df = pd.DataFrame({
+                "场次时间": all_times,
+                "星期几": [dt.weekday() for dt in all_times],
+                "是否下午场": [1 if dt.hour == 14 else 0 for dt in all_times],
+                "是否周末": [1 if dt.weekday() >= 5 else 0 for dt in all_times],
+                "是否节假日": [1 if dt.normalize() in holiday_list else 0 for dt in all_times],
+                "距开演首日的天数": [(dt - all_times[0]).days for dt in all_times],
+                "最高价格": max_price,
+                "最低价格": min_price,
+                "周期": (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
+            })
     
-                if X_new.isnull().any().any():
-                    st.error("❌ 输入数据中存在缺失值，请检查输入。")
-                    st.dataframe(X_new)
-                elif X_new.empty:
-                    st.error("❌ 没有生成有效的预测输入。")
-                else:
-                    try:
-                        y_new = model.predict(X_new)
-                        schedule_df["预测营收"] = y_new
+            for k, v in input_dict.items():
+                schedule_df[k] = v
+            for tag, val in tag_values.items():
+                schedule_df[tag] = val
     
-                        # 绘图
-                        fig, ax = plt.subplots(figsize=(12, 5))
-                        ax.plot(schedule_df["场次时间"], schedule_df["预测营收"], marker='o', color="#2196F3")
-                        ax.set_title("新剧每场次预测营收")
-                        ax.set_xlabel("场次时间")
-                        ax.set_ylabel("预测营收")
-                        st.pyplot(fig)
+            # one-hot 编码
+            X_new = pd.get_dummies(schedule_df.drop(columns=["场次时间"]))
+            X_new = X_new.reindex(columns=X.columns, fill_value=0)
     
-                        # 成本收益分析
-                        st.subheader("💵 成本与收益分析")
-                        num_shows = len(schedule_df)
-                        admin_cost = monthly_admin * ((end_date - start_date).days / 30)
-                        recurring_cost = per_show_cost * num_shows
-                        total_cost = one_time_cost + recurring_cost + admin_cost
-                        total_revenue = schedule_df["预测营收"].sum()
+            # 模型预测
+            try:
+                y_new = model.predict(X_new)
+                schedule_df["预测营收"] = y_new
     
-                        st.markdown(f"- 场次数：**{num_shows} 场**")
-                        st.markdown(f"- 预测总营收：**{total_revenue:,.2f} 元**")
-                        st.markdown(f"- 总成本：**{total_cost:,.2f} 元**")
-                        st.markdown(f"- 预计利润：**{total_revenue - total_cost:,.2f} 元**")
+                # 📊 可视化
+                fig, ax = plt.subplots(figsize=(12, 5))
+                ax.plot(schedule_df["场次时间"], schedule_df["预测营收"], marker='o', color="#2196F3")
+                ax.set_title("新剧每场次预测营收")
+                ax.set_xlabel("场次时间")
+                ax.set_ylabel("预测营收")
+                st.pyplot(fig)
     
-                        # 导出
-                        st.subheader("💾 导出预测结果")
-                        export_df = schedule_df[["场次时间", "预测营收"]].copy()
-                        export_df["累计预测营收"] = export_df["预测营收"].cumsum()
-                        csv = export_df.to_csv(index=False).encode("utf-8-sig")
-                        st.download_button(
-                            label="📥 下载预测结果 CSV",
-                            data=csv,
-                            file_name="预测结果.csv",
-                            mime="text/csv"
-                        )
-                    except Exception as e:
-                        st.error(f"❌ 预测时出错：{e}")
-                        st.dataframe(X_new)
+                # 💵 收益分析
+                st.subheader("💵 成本与收益分析")
+                num_shows = len(schedule_df)
+                period = (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
+                admin_cost = monthly_admin * (period / 30)
+                recurring_cost = per_show_cost * num_shows
+                total_cost = one_time_cost + recurring_cost + admin_cost
+                total_revenue = schedule_df["预测营收"].sum()
+    
+                st.markdown(f"- 场次数：**{num_shows} 场**")
+                st.markdown(f"- 预测总营收：**{total_revenue:,.2f} 元**")
+                st.markdown(f"- 总成本：**{total_cost:,.2f} 元**")
+                st.markdown(f"- 预计利润：**{total_revenue - total_cost:,.2f} 元**")
+    
+                # 💾 导出
+                export_df = schedule_df[["场次时间", "预测营收"]].copy()
+                export_df["累计预测营收"] = export_df["预测营收"].cumsum()
+                csv = export_df.to_csv(index=False).encode("utf-8-sig")
+                st.download_button(
+                    label="📥 下载预测结果 CSV",
+                    data=csv,
+                    file_name="预测结果.csv",
+                    mime="text/csv"
+                )
+            except Exception as e:
+                st.error(f"❌ 预测时出错：{e}")
+                st.dataframe(X_new)
+
+
