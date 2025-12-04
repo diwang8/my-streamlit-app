@@ -394,7 +394,41 @@ if uploaded_file:
                 "剧场规模": scale_map[scale],
                 "剧场区域": region_map[region]
             }
-    
+
+            # 构建基础场次数据（不含票价）
+            base_df = pd.DataFrame({
+                "场次时间": all_times,
+                "星期几": [dt.weekday() for dt in all_times],
+                "是否下午场": [1 if dt.hour == 14 else 0 for dt in all_times],
+                "是否周末": [1 if dt.weekday() >= 5 else 0 for dt in all_times],
+                "是否节假日": [1 if dt.normalize() in holiday_list else 0 for dt in all_times],
+                "距开演首日的天数": [(dt - all_times[0]).days for dt in all_times],
+                "周期": (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
+            })
+            for k, v in input_dict.items():
+                base_df[k] = v
+            for tag, val in tag_values.items():
+                base_df[tag] = val
+            
+            # 若启用优化票价
+            if optimize_price:
+                st.info("正在尝试优化票价以达成目标回本周期，请稍候...")
+                best_price = optimize_max_price_for_payback(
+                    base_df, model, X.columns, one_time_cost, per_show_cost, monthly_admin,
+                    investor_share_payback, investor_share_profit, venue_share, tax_rate, channel_share,
+                    start_date, end_date, target_payback_days,
+                    price_range=(int(min_price), int(max_price * 2)),
+                    input_dict=input_dict,
+                    tag_values=tag_values,
+                    holiday_list=holiday_list
+                )
+                if best_price:
+                    st.success(f"✅ 建议将最高票价调整为 **{best_price} 元**，以实现约 {target_payback_days} 天的投资者回本周期")
+                    max_price = best_price
+                    min_price = best_price * 0.5
+                else:
+                    st.warning("⚠️ 在当前参数范围内无法找到满足目标回本周期的票价")
+
             schedule_df = pd.DataFrame({
                 "场次时间": all_times,
                 "星期几": [dt.weekday() for dt in all_times],
@@ -555,6 +589,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
