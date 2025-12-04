@@ -168,36 +168,18 @@ if uploaded_file:
 
     if model_name == "Random Forest":
         model = RandomForestRegressor(n_estimators=100, random_state=42)
+    '''
     elif model_name == "Ridge Regression":
         model = Ridge()
     elif model_name == "XGBoost":
         model = XGBRegressor(n_estimators=100, random_state=42)
+    '''
     elif model_name == "LightGBM":
         model = LGBMRegressor(n_estimators=100, random_state=42)
+    '''
     elif model_name == "MLP (多层感知机)":
         model = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
-    # 拆分训练集和测试集
-    X_train, X_test, y_train, y_test = train_test_split(X, y_raw, test_size=0.2, random_state=42)
-    
-    # 清洗训练集（防止 Ridge、MLP 等模型报错）
-    # 替换 inf 为 NaN
-    X_train = X_train.replace([np.inf, -np.inf], np.nan)
-    y_train = y_train.replace([np.inf, -np.inf], np.nan)
-    
-    # 合并清洗，确保 X 和 y 同步
-    train_df = pd.concat([X_train, y_train], axis=1)
-    
-    # 删除任何含 NaN 的行
-    train_df = train_df.dropna()
-    
-    # 拆分回 X 和 y
-    X_train = train_df.iloc[:, :-1]
-    y_train = train_df.iloc[:, -1]
-    
-    # 确保 X_train 是 float 类型（防止 object 类型混入）
-    X_train = X_train.astype(float)
-
-
+    '''
 
     model.fit(X_train, y_train)
 
@@ -462,6 +444,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
