@@ -22,6 +22,42 @@ from sklearn.metrics import r2_score
 from sklearn.multioutput import MultiOutputRegressor
 from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
+from datetime import datetime, timedelta
+
+# 🎉 节假日列表（2025-12-04 起未来三年）
+holiday_list = [
+    # 2026 元旦
+    "2026-01-01",
+    # 2026 春节（示例）
+    "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-21", "2026-02-22",
+    # 2026 清明节
+    "2026-04-04", "2026-04-05", "2026-04-06",
+    # 2026 劳动节
+    "2026-05-01", "2026-05-02", "2026-05-03",
+    # 2026 国庆节
+    "2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05", "2026-10-06", "2026-10-07",
+    # 2027、2028 可补充
+]
+holiday_list = [pd.to_datetime(d) for d in holiday_list]
+
+# 📅 场次生成函数
+def generate_show_schedule(start_date, end_date, weekly_plan):
+    """
+    根据开始/结束日期和每周排期生成所有场次时间
+    weekly_plan: dict like {"0": ["14:30", "19:30"], "1": [], ..., "6": ["19:30"]}
+    """
+    all_slots = []
+    current = start_date
+    while current <= end_date:
+        weekday = str(current.weekday())  # 0=周一
+        if weekday in weekly_plan:
+            for time_str in weekly_plan[weekday]:
+                dt_str = f"{current.strftime('%Y-%m-%d')} {time_str}"
+                dt = pd.to_datetime(dt_str)
+                all_slots.append(dt)
+        current += timedelta(days=1)
+    return sorted(all_slots)
+
 
 st.set_page_config(layout="wide")
 st.title("🎭 剧目营收预测系统")
@@ -347,6 +383,7 @@ if uploaded_file:
                 file_name="预测结果.csv",
                 mime="text/csv"
             )
+
 
 
 
