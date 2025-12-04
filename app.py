@@ -365,9 +365,12 @@ if uploaded_file:
         st.pyplot(fig2)
 
     st.markdown("---")
+    # 初始化 session_state 控制预测执行
+    if "run_prediction" not in st.session_state:
+        st.session_state.run_prediction = False
 
     # 🆕 输入新剧信息进行预测
-    with st.expander("🆕 输入新剧信息进行预测"):
+    with st.expander("🆕 输入新剧信息进行预测", expanded=True):
 
         # 🎭 剧目参数设置（参与模型预测）
         st.markdown("### 🎭 剧目与场次参数设置")
@@ -437,8 +440,9 @@ if uploaded_file:
     
         # 🚀 开始预测
         if st.button("开始预测"):
-            # 构建输入数据
+            st.session_state.run_prediction = True
 
+        if st.session_state.run_prediction:
             input_dict = {
                 "剧目类型": type_map[show_type],
                 "是否常驻": resident_map[is_resident],
@@ -630,6 +634,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
