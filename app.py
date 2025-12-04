@@ -179,11 +179,13 @@ if uploaded_file:
 
 
     # 清洗训练数据，去除 NaN 或 inf
-    X_train = X_train.replace([np.inf, -np.inf], np.nan).dropna()
-    y_train = y_train.loc[X_train.index]
+    # 清洗训练数据，去除 NaN 或 inf
+    X_train_clean = X_train.replace([np.inf, -np.inf], np.nan).dropna()
+    y_train_clean = y_train.loc[X_train_clean.index]
 
-    # 模型训练
-    model.fit(X_train, y_train)
+    # 模型训练（使用清洗后的数据）
+    model.fit(X_train_clean, y_train_clean)
+
 
     # 模型评分
     y_pred = model.predict(X_test)
@@ -444,6 +446,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
