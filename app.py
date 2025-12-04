@@ -194,6 +194,13 @@ if uploaded_file:
 
 
     # 模型训练
+    print("X_train_clean shape:", X_train_clean.shape)
+    print("X_train_clean dtypes:\n", X_train_clean.dtypes)
+    print("y_train_clean shape:", y_train_clean.shape)
+    print("是否有 NaN:", X_train_clean.isnull().any().any(), y_train_clean.isnull().any())
+    print("X_train_clean head:\n", X_train_clean.head())
+    print("y_train_clean head:\n", y_train_clean.head())
+
     model.fit(X_train_clean, y_train_clean)
 
 
@@ -457,6 +464,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
