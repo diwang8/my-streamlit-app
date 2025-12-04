@@ -178,6 +178,9 @@ if uploaded_file:
         model = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
 
 
+    # 清洗训练数据，去除 NaN 或 inf
+    X_train = X_train.replace([np.inf, -np.inf], np.nan).dropna()
+    y_train = y_train.loc[X_train_clean.index]
 
     # 模型训练
     model.fit(X_train, y_train)
@@ -441,6 +444,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
