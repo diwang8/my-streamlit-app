@@ -178,10 +178,20 @@ if uploaded_file:
         model = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
 
 
-    # 清洗训练数据：去除 NaN、inf，并确保是数值型
-    X_train_clean = X_train.replace([np.inf, -np.inf], np.nan).dropna()
-    X_train_clean = X_train_clean.astype(float)  # 强制转换为 float
-    y_train_clean = y_train.loc[X_train_clean.index]
+    # 将 inf 替换为 NaN
+    X_train = X_train.replace([np.inf, -np.inf], np.nan)
+    y_train = y_train.replace([np.inf, -np.inf], np.nan)
+    
+    # 合并为一个 DataFrame 统一清洗
+    train_df = pd.concat([X_train, y_train], axis=1)
+    
+    # 删除含 NaN 的行
+    train_df = train_df.dropna()
+    
+    # 拆分回 X 和 y
+    X_train_clean = train_df.iloc[:, :-1].astype(float)
+    y_train_clean = train_df.iloc[:, -1]
+
 
     # 模型训练
     model.fit(X_train_clean, y_train_clean)
@@ -447,6 +457,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
