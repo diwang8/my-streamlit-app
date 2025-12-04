@@ -149,15 +149,15 @@ def suggest_parameter_adjustments(
                     break
 
         elif param == "题材标签":
-        for tag, val in tag_values.items():
-            if val == 1:
-                continue
-            df = base_df.copy()
-            df[tag] = 1
-            result = simulate(df)
-            if result and result <= target_days:
-                suggestions[f"题材标签：{tag}"] = "建议添加该标签"
-                break
+            for tag, val in tag_values.items():
+                if val == 1:
+                    continue
+                df = base_df.copy()
+                df[tag] = 1
+                result = simulate(df)
+                if result and result <= target_days:
+                    suggestions[f"题材标签：{tag}"] = "建议添加该标签"
+                    break
 
 
     return suggestions
@@ -630,6 +630,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
