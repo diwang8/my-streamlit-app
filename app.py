@@ -116,6 +116,25 @@ def collect_cost_inputs():
     monthly_admin = st.number_input("管理费用（元/月）", value=120000)
 
     return one_time_cost, per_show_cost, monthly_admin
+    
+def collect_distribution_inputs():
+    st.markdown("### 📊 收入分成参数设置")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        venue_share = st.number_input("场地分成（%）", value=5.0) / 100
+    with col2:
+        tax_rate = st.number_input("税点（%）", value=3.0) / 100
+    with col3:
+        channel_share = st.number_input("票房渠道分成（%）", value=14.0) / 100
+
+    col4, col5 = st.columns(2)
+    with col4:
+        investor_share_payback = st.number_input("投资者分成占比（回本期 %）", value=50.0) / 100
+    with col5:
+        investor_share_profit = st.number_input("投资者分成占比（收益期 %）", value=20.0) / 100
+
+    return venue_share, tax_rate, channel_share, investor_share_payback, investor_share_profit
+
 
 
 
@@ -314,6 +333,9 @@ if uploaded_file:
         # 🚀 开始预测
         if st.button("开始预测"):
             # 构建输入数据
+            # 获取分成参数
+            venue_share, tax_rate, channel_share, investor_share_payback, investor_share_profit = collect_distribution_inputs()
+
             input_dict = {
                 "剧目类型": type_map[show_type],
                 "是否常驻": resident_map[is_resident],
@@ -349,7 +371,10 @@ if uploaded_file:
     
                 # 📊 可视化
                 # 添加预测营收
-                schedule_df["预测营收"] = y_new
+                # 营收扣除场地、税、渠道分成
+                net_ratio = 1 - venue_share - tax_rate - channel_share
+                schedule_df["预测营收"] = y_new * net_ratio
+
                 
                 # 计算累计营收
                 schedule_df["累计预测营收"] = schedule_df["预测营收"].cumsum()
@@ -366,7 +391,26 @@ if uploaded_file:
                 # 每场收益、累计收益
                 schedule_df["每场收益"] = schedule_df["预测营收"] - (per_show_cost + admin_per_show)
                 schedule_df["累计收益"] = schedule_df["每场收益"].cumsum()
+               # 投资者 vs 运营者收益拆分
+                investor_share = []
+                operator_share = []
+                cumulative_profit = 0
                 
+                for i, profit in enumerate(schedule_df["每场收益"]):
+                    cumulative_profit += profit
+                    if cumulative_profit < one_time_cost:
+                        investor_ratio = investor_share_payback
+                    else:
+                        investor_ratio = investor_share_profit
+                    investor_share.append(profit * investor_ratio)
+                    operator_share.append(profit * (1 - investor_ratio))
+                
+                schedule_df["投资者收益"] = investor_share
+                schedule_df["运营者收益"] = operator_share
+                schedule_df["累计投资者收益"] = schedule_df["投资者收益"].cumsum()
+                schedule_df["累计运营者收益"] = schedule_df["运营者收益"].cumsum()
+
+
                 # 图 1：每场预测营收（条形图）
                 st.subheader("📊 每场预测营收（条形图）")
                 fig1, ax1 = plt.subplots(figsize=(12, 5))
@@ -390,19 +434,28 @@ if uploaded_file:
                 ax2.tick_params(axis='x', rotation=45)
                 st.pyplot(fig2)
                 
-                # 图 3：每场收益（条形）+ 累计收益（折线）复合图
-                st.subheader("💹 每场收益 + 累计收益")
+               # 图 3：投资者收益
+                st.subheader("💹 投资者收益趋势")
                 fig3, ax3 = plt.subplots(figsize=(12, 5))
-                ax3.bar(schedule_df["场次时间"], schedule_df["每场收益"], label="每场收益", color="#4CAF50")
-                ax3.set_ylabel("每场收益（元）", color="#4CAF50")
+                ax3.bar(schedule_df["场次时间"], schedule_df["投资者收益"], label="每场投资者收益", color="#FF9800")
+                ax3.plot(schedule_df["场次时间"], schedule_df["累计投资者收益"], label="累计投资者收益", color="#E65100", marker='o')
+                ax3.set_ylabel("金额（元）")
+                ax3.set_title("投资者收益趋势")
+                ax3.legend()
                 ax3.tick_params(axis='x', rotation=45)
-                
-                ax4 = ax3.twinx()
-                ax4.plot(schedule_df["场次时间"], schedule_df["累计收益"], label="累计收益", color="#9C27B0", marker='o')
-                ax4.set_ylabel("累计收益（元）", color="#9C27B0")
-                
-                fig3.tight_layout()
                 st.pyplot(fig3)
+                
+                # 图 4：运营者收益
+                st.subheader("💹 运营者收益趋势")
+                fig4, ax4 = plt.subplots(figsize=(12, 5))
+                ax4.bar(schedule_df["场次时间"], schedule_df["运营者收益"], label="每场运营者收益", color="#4CAF50")
+                ax4.plot(schedule_df["场次时间"], schedule_df["累计运营者收益"], label="累计运营者收益", color="#1B5E20", marker='s')
+                ax4.set_ylabel("金额（元）")
+                ax4.set_title("运营者收益趋势")
+                ax4.legend()
+                ax4.tick_params(axis='x', rotation=45)
+                st.pyplot(fig4)
+
 
     
                 # 💵 收益分析
@@ -426,6 +479,15 @@ if uploaded_file:
                     st.markdown(f"- 回本周期：**第 {payback_days} 天（{pd.to_datetime(payback_date).date()}）** 实现盈亏平衡")
                 else:
                     st.markdown("- 回本周期：**未在预测周期内实现盈亏平衡**")
+                # 投资者回本周期
+                investor_payback_row = schedule_df[schedule_df["累计投资者收益"] >= one_time_cost].head(1)
+                if not investor_payback_row.empty:
+                    payback_date = investor_payback_row["场次时间"].values[0]
+                    payback_days = (pd.to_datetime(payback_date) - pd.to_datetime(start_date)).days
+                    st.markdown(f"- 🎯 投资者回本周期：**第 {payback_days} 天（{pd.to_datetime(payback_date).date()}）**")
+                else:
+                    st.markdown("- 🎯 投资者回本周期：**未在预测周期内实现回本**")
+
 
     
                 # 💾 导出
@@ -441,6 +503,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
