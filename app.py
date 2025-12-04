@@ -176,6 +176,17 @@ if uploaded_file:
         model = LGBMRegressor(n_estimators=100, random_state=42)
     elif model_name == "MLP (多层感知机)":
         model = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
+    # 拆分训练集和测试集
+    X_train, X_test, y_train, y_test = train_test_split(X, y_raw, test_size=0.2, random_state=42)
+    
+    # 清洗训练集（防止 Ridge、MLP 等模型报错）
+    X_train = X_train.replace([np.inf, -np.inf], np.nan)
+    y_train = y_train.replace([np.inf, -np.inf], np.nan)
+    train_df = pd.concat([X_train, y_train], axis=1).dropna()
+    X_train = train_df.iloc[:, :-1]
+    y_train = train_df.iloc[:, -1]
+    X_test = X_test.replace([np.inf, -np.inf], np.nan).dropna()
+
 
     model.fit(X_train, y_train)
 
@@ -440,6 +451,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
