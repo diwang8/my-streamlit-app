@@ -58,6 +58,107 @@ def generate_show_schedule(start_date, end_date, weekly_plan):
         current += timedelta(days=1)
     return sorted(all_slots)
 
+def suggest_parameter_adjustments(
+    base_df, model, X_columns, one_time_cost, per_show_cost, monthly_admin,
+    investor_share_payback, investor_share_profit, venue_share, tax_rate, channel_share,
+    start_date, end_date, target_days,
+    input_dict, tag_values, selected_optimizable, weekly_plan, holiday_list
+):
+    suggestions = {}
+    current_days = (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
+
+    def simulate(df):
+        try:
+            X_new = pd.get_dummies(df.drop(columns=["场次时间"]))
+            X_new = X_new.reindex(columns=X_columns, fill_value=0)
+            y_pred = model.predict(X_new)
+            df["预测营收"] = y_pred * (1 - venue_share - tax_rate - channel_share)
+
+            num_shows = len(df)
+            admin_cost = monthly_admin * (current_days / 30)
+            admin_per_show = admin_cost / num_shows
+            df["每场收益"] = df["预测营收"] - (per_show_cost + admin_per_show)
+
+            investor_cum_profit = 0
+            for i, profit in enumerate(df["每场收益"]):
+                investor_ratio = investor_share_payback if investor_cum_profit < one_time_cost else investor_share_profit
+                investor_cum_profit += profit * investor_ratio
+                if investor_cum_profit >= one_time_cost:
+                    return (df.iloc[i]["场次时间"] - pd.to_datetime(start_date)).days
+        except:
+            return None
+        return None
+
+    for param in selected_optimizable:
+        if param == "最高价格":
+            for price in range(int(base_df["最高价格"].iloc[0]), int(base_df["最高价格"].iloc[0] * 2), 20):
+                df = base_df.copy()
+                df["最高价格"] = price
+                df["最低价格"] = price * 0.5
+                result = simulate(df)
+                if result and result <= target_days:
+                    suggestions["最高价格"] = f"建议提高至 {price} 元"
+                    break
+
+        elif param == "周期":
+            for extra_days in range(30, 181, 30):
+                new_end = pd.to_datetime(start_date) + pd.Timedelta(days=current_days + extra_days)
+                new_times = generate_show_schedule(pd.to_datetime(start_date), new_end, weekly_plan)
+                if not new_times:
+                    continue
+                df = base_df.copy()
+                df = df.iloc[:len(new_times)].copy()
+                df["场次时间"] = new_times
+                df["周期"] = (new_end - pd.to_datetime(start_date)).days
+                result = simulate(df)
+                if result and result <= target_days:
+                    suggestions["周期"] = f"建议延长至 {df['周期'].iloc[0]} 天"
+                    break
+
+        elif param == "是否常驻":
+            for val in [0, 1]:
+                if val == input_dict["是否常驻"]:
+                    continue
+                df = base_df.copy()
+                df["是否常驻"] = val
+                result = simulate(df)
+                if result and result <= target_days:
+                    suggestions["是否常驻"] = "建议设为 是" if val == 1 else "建议设为 否"
+                    break
+
+        elif param == "剧场规模":
+            for val in [0, 1]:
+                if val == input_dict["剧场规模"]:
+                    continue
+                df = base_df.copy()
+                df["剧场规模"] = val
+                result = simulate(df)
+                if result and result <= target_days:
+                    suggestions["剧场规模"] = "建议使用 大中剧场" if val == 1 else "建议使用 小剧场"
+                    break
+
+        elif param == "剧场区域":
+            for val in region_map.values():
+                if val == input_dict["剧场区域"]:
+                    continue
+                df = base_df.copy()
+                df["剧场区域"] = val
+                result = simulate(df)
+                if result and result <= target_days:
+                    suggestions["剧场区域"] = f"建议调整为 {reverse_region_map[val]}"
+                    break
+
+        elif param in tag_values:
+            if tag_values[param] == 1:
+                continue
+            df = base_df.copy()
+            df[param] = 1
+            result = simulate(df)
+            if result and result <= target_days:
+                suggestions[param] = "建议添加该标签"
+                break
+
+    return suggestions
 
 st.set_page_config(layout="wide")
 st.title("🎭 剧目营收预测系统")
@@ -488,6 +589,31 @@ if uploaded_file:
                 else:
                     st.markdown("- 🎯 投资者回本周期：**未在预测周期内实现回本**")
 
+                                # 🎯 回本优化建议
+                st.markdown("### 🎯 回本优化建议")
+                target_days = st.number_input("请输入目标投资者回本周期（单位：天）", value=90, min_value=1)
+                optimizable_options = ["最高价格", "周期", "是否常驻", "剧场规模", "剧场区域"] + list(tag_values.keys())
+                selected_optimizable = st.multiselect("可优化参数", options=optimizable_options, default=["最高价格", "周期", "剧场规模"])
+
+                base_df = schedule_df.copy()
+                suggestions = suggest_parameter_adjustments(
+                    base_df, model, X.columns, one_time_cost, per_show_cost, monthly_admin,
+                    investor_share_payback, investor_share_profit, venue_share, tax_rate, channel_share,
+                    start_date, end_date, target_days,
+                    input_dict=input_dict,
+                    tag_values=tag_values,
+                    selected_optimizable=selected_optimizable,
+                    weekly_plan=weekly_plan,
+                    holiday_list=holiday_list
+                )
+                if suggestions:
+                    st.info("📌 以下是可供参考的参数优化建议，以实现目标回本周期：")
+                    for k, v in suggestions.items():
+                        st.markdown(f"- **{k}**：{v}")
+                else:
+                    st.warning("⚠️ 无法在当前参数范围内提供可行的优化建议")
+
+
 
     
                 # 💾 导出
@@ -503,6 +629,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
