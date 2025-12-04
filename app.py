@@ -416,6 +416,15 @@ if uploaded_file:
                 st.markdown(f"- 预测总营收：**{total_revenue:,.2f} 元**")
                 st.markdown(f"- 总成本：**{total_cost:,.2f} 元**")
                 st.markdown(f"- 预计利润：**{total_revenue - total_cost:,.2f} 元**")
+                # 回本周期计算
+                payback_row = schedule_df[schedule_df["累计预测营收"] >= schedule_df["累计成本"]].head(1)
+                if not payback_row.empty:
+                    payback_date = payback_row["场次时间"].values[0]
+                    payback_days = (pd.to_datetime(payback_date) - pd.to_datetime(start_date)).days
+                    st.markdown(f"- 回本周期：**第 {payback_days} 天（{pd.to_datetime(payback_date).date()}）** 实现盈亏平衡")
+                else:
+                    st.markdown("- 回本周期：**未在预测周期内实现盈亏平衡**")
+
     
                 # 💾 导出
                 export_df = schedule_df[["场次时间", "预测营收"]].copy()
@@ -430,6 +439,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
