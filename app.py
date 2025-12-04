@@ -163,22 +163,21 @@ if uploaded_file:
     X_train, X_test, y_train, y_test = train_test_split(X, y_raw, test_size=0.2, random_state=42)
 
     # 模型选择
-    model_options = ["Random Forest", "Ridge Regression", "XGBoost", "LightGBM", "MLP (多层感知机)"]
+    model_options = ["Random Forest", "LightGBM"]
     model_name = st.selectbox("选择模型", model_options)
 
     if model_name == "Random Forest":
         model = RandomForestRegressor(n_estimators=100, random_state=42)
     elif model_name == "LightGBM":
         model = LGBMRegressor(n_estimators=100, random_state=42)
-    '''
+    """
     elif model_name == "Ridge Regression":
         model = Ridge()
     elif model_name == "XGBoost":
         model = XGBRegressor(n_estimators=100, random_state=42)
     elif model_name == "MLP (多层感知机)":
         model = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
-    '''
-
+    """
     model.fit(X_train, y_train)
 
 
@@ -442,6 +441,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
