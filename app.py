@@ -98,55 +98,36 @@ reverse_scale_map = {v: k for k, v in scale_map.items()}
 reverse_region_map = {v: k for k, v in region_map.items()}
 
 # 上传数据
-uploaded_file = st.file_uploader("📤 上传剧目信息数据文件（CSV）", type=["csv"])
+# 上传数据
+uploaded_file = st.file_uploader("📤 上传剧目场次数据文件（CSV）", type=["csv"])
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
-    # 选择是否只预测场均营收
-    predict_average = st.checkbox("✅ 只预测场均营收")
+    # 预处理日期
+    df["场次时间"] = pd.to_datetime(df["场次时间"])
 
-    # 自动识别营收列（包含“第”和“场营收”）
-    revenue_cols = [col for col in df.columns if "第" in col and "场营收" in col]
+    # 映射字段
+    df["剧目类型"] = df["剧目类型"].map(type_map)
+    df["是否常驻"] = df["是否常驻"].map({"否": 0, "是": 1})
+    df["剧场规模"] = df["剧场规模"].map(scale_map)
+    df["剧场区域"] = df["剧场区域"].map(region_map)
 
-    # 自动识别特征列（排除剧目名称和营收列）
-    exclude_cols = ["剧目名称"] + revenue_cols
+    # 特征列（排除剧目名称、场次时间、营业收入）
+    exclude_cols = ["话剧名称", "场次时间", "营业收入"]
     feature_cols = [col for col in df.columns if col not in exclude_cols]
 
-    # 构造训练数据
+    # 特征与目标
     X_raw = df[feature_cols].copy()
-    y_raw = df[revenue_cols].copy().fillna(0)
+    y_raw = df["营业收入"]
 
-    if predict_average:
-        y_raw = y_raw.mean(axis=1)  # Series
-
-    # 自动映射字段（如类型、是否常驻等）
-    mapping_fields = {
-        "类型": type_map,
-        "是否常驻": {"否": 0, "是": 1, "N": 0, "Y": 1},
-        "剧场规模": scale_map,
-        "剧场区域": region_map
-    }
-    for col, mapping in mapping_fields.items():
-        if col in X_raw.columns:
-            X_raw[col] = X_raw[col].map(mapping).fillna(X_raw[col])
-
-    # 自动识别分类字段（非数值型）
-    categorical_cols = X_raw.select_dtypes(include=["object"]).columns.tolist()
-    for col in categorical_cols:
-        X_raw[col] = X_raw[col].astype(str)
-
-    # one-hot 编码
+    # one-hot 编码（自动处理分类变量）
     X = pd.get_dummies(X_raw)
-
 
     # 拆分训练集和测试集
     X_train, X_test, y_train, y_test = train_test_split(X, y_raw, test_size=0.2, random_state=42)
 
     # 模型选择
-    if predict_average:
-        model_options = ["Random Forest", "Ridge Regression", "XGBoost", "LightGBM", "MLP (多层感知机)"]
-    else:
-        model_options = ["Random Forest", "Ridge Regression", "LightGBM", "MLP (多层感知机)"] 
+    model_options = ["Random Forest", "Ridge Regression", "XGBoost", "LightGBM", "MLP (多层感知机)"]
     model_name = st.selectbox("选择模型", model_options)
 
     if model_name == "Random Forest":
@@ -154,76 +135,47 @@ if uploaded_file:
     elif model_name == "Ridge Regression":
         model = Ridge()
     elif model_name == "XGBoost":
-        base_model = XGBRegressor(n_estimators=100, random_state=42)
-        model = base_model if predict_average else MultiOutputRegressor(base_model)
+        model = XGBRegressor(n_estimators=100, random_state=42)
     elif model_name == "LightGBM":
-        base_model = LGBMRegressor(n_estimators=100, random_state=42)
-        model = base_model if predict_average else MultiOutputRegressor(base_model)
+        model = LGBMRegressor(n_estimators=100, random_state=42)
     elif model_name == "MLP (多层感知机)":
         model = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
 
-    # 训练模型
+    # 模型训练
     model.fit(X_train, y_train)
 
     # 模型评分
     y_pred = model.predict(X_test)
     score = r2_score(y_test, y_pred)
-    # st.success(f"模型 R² 分数：{score:.4f}")
+    st.success(f"模型 R² 分数：{score:.4f}")
 
-    st.markdown("---")
-
-    # 🎯 预测已有剧目
+        st.markdown("---")
     st.subheader("🎯 选择已有剧目进行预测")
-    selected_name = st.selectbox("选择剧目", df["剧目名称"].unique())
-    selected_row = df[df["剧目名称"] == selected_name]
+    selected_name = st.selectbox("选择剧目", df["话剧名称"].unique())
+    selected_rows = df[df["话剧名称"] == selected_name].copy()
 
-    if not selected_row.empty:
-        info = selected_row.iloc[0]
-        st.markdown(f"""
-        - **剧目名称**: {info['剧目名称']}
-        - **类型**: {reverse_type_map.get(info['类型'], info['类型'])}
-        - **最低价格**: {info['最低价格']} 元
-        - **最高价格**: {info['最高价格']} 元
-        - **周期**: {info['周期']} 天
-        - **是否常驻**: {reverse_resident_map.get(info['是否常驻'], info['是否常驻'])}
-        - **剧场规模**: {reverse_scale_map.get(info['剧场规模'], info['剧场规模'])}
-        - **剧场区域**: {reverse_region_map.get(info['剧场区域'], info['剧场区域'])}
-        """)
+    if not selected_rows.empty:
+        # 特征处理
+        X_selected = selected_rows[feature_cols].copy()
+        X_selected = pd.get_dummies(X_selected)
+        X_selected = X_selected.reindex(columns=X.columns, fill_value=0)
 
-        input_data = selected_row[feature_cols].copy()
-        input_data["剧场区域"] = input_data["剧场区域"].astype(str)
-        input_data = pd.get_dummies(input_data)
-        input_data = input_data.reindex(columns=X.columns, fill_value=0)
-        prediction = model.predict(input_data)[0]
+        # 预测
+        y_pred = model.predict(X_selected)
 
-        if predict_average:
-            actual_avg = selected_row[revenue_cols].values.flatten().mean()
-            st.metric("预测场均营收", f"{prediction:.2f} 元")
-            st.metric("实际场均营收", f"{actual_avg:.2f} 元")
-            fig, ax = plt.subplots()
-            ax.bar(["实际值", "预测值"], [actual_avg, prediction], color=["#4CAF50", "#2196F3"])
-            ax.set_ylabel("场均营收")
-            ax.set_title("场均营收对比")
-            st.pyplot(fig)
-        else:
-            actual_values = selected_row[revenue_cols].values.flatten()
-            fig, ax = plt.subplots(1, 2, figsize=(14, 5))
+        # 绘图
+        st.subheader("📈 场次营收预测")
+        selected_rows["预测营收"] = y_pred
+        selected_rows = selected_rows.sort_values("场次时间")
 
-            ax[0].bar(np.arange(1, 22) - 0.2, actual_values, width=0.4, label="实际", color="#4CAF50")
-            ax[0].bar(np.arange(1, 22) + 0.2, prediction, width=0.4, label="预测", color="#2196F3")
-            ax[0].set_title("每场营收对比")
-            ax[0].set_xlabel("场次")
-            ax[0].set_ylabel("营收")
-            ax[0].legend()
-
-            ax[1].plot(np.arange(1, 22), np.cumsum(actual_values), marker='o', label="实际", color="#4CAF50")
-            ax[1].plot(np.arange(1, 22), np.cumsum(prediction), marker='o', label="预测", color="#2196F3")
-            ax[1].set_title("累计营收对比")
-            ax[1].set_xlabel("场次")
-            ax[1].set_ylabel("累计营收")
-            ax[1].legend()
-
-            st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(12, 5))
+        ax.plot(selected_rows["场次时间"], selected_rows["营业收入"], marker='o', label="实际营收", color="#4CAF50")
+        ax.plot(selected_rows["场次时间"], selected_rows["预测营收"], marker='o', label="预测营收", color="#2196F3")
+        ax.set_title(f"{selected_name} 每场次营收对比")
+        ax.set_xlabel("场次时间")
+        ax.set_ylabel("营收")
+        ax.legend()
+        st.pyplot(fig)
 
     st.markdown("---")
 
@@ -368,6 +320,7 @@ if uploaded_file:
                 file_name="预测结果.csv",
                 mime="text/csv"
             )
+
 
 
 
