@@ -92,7 +92,7 @@ def suggest_parameter_adjustments(
     for param in selected_optimizable:
         if param == "最高价格":
             for price in range(int(base_df["最高价格"].iloc[0]), int(base_df["最高价格"].iloc[0] * 2), 20):
-                df = base_df.copy()
+                df = base_df.copy().reset_index(drop=True)
                 df["最高价格"] = price
                 df["最低价格"] = price * 0.5
                 result = simulate(df)
@@ -107,7 +107,8 @@ def suggest_parameter_adjustments(
                 if not new_times:
                     continue
                 df = base_df.copy()
-                df = df.iloc[:len(new_times)].copy()
+                df = df.iloc[:len(new_times)].copy().reset_index(drop=True)
+                new_times = new_times[:len(df)]  # 保证长度一致
                 df["场次时间"] = new_times
                 df["周期"] = (new_end - pd.to_datetime(start_date)).days
                 result = simulate(df)
@@ -119,7 +120,7 @@ def suggest_parameter_adjustments(
             for val in [0, 1]:
                 if val == input_dict["是否常驻"]:
                     continue
-                df = base_df.copy()
+                df = base_df.copy().reset_index(drop=True)
                 df["是否常驻"] = val
                 result = simulate(df)
                 if result and result <= target_days:
@@ -130,7 +131,7 @@ def suggest_parameter_adjustments(
             for val in [0, 1]:
                 if val == input_dict["剧场规模"]:
                     continue
-                df = base_df.copy()
+                df = base_df.copy().reset_index(drop=True)
                 df["剧场规模"] = val
                 result = simulate(df)
                 if result and result <= target_days:
@@ -141,7 +142,7 @@ def suggest_parameter_adjustments(
             for val in region_map.values():
                 if val == input_dict["剧场区域"]:
                     continue
-                df = base_df.copy()
+                df = base_df.copy().reset_index(drop=True)
                 df["剧场区域"] = val
                 result = simulate(df)
                 if result and result <= target_days:
@@ -152,15 +153,15 @@ def suggest_parameter_adjustments(
             for tag, val in tag_values.items():
                 if val == 1:
                     continue
-                df = base_df.copy()
+                df = base_df.copy().reset_index(drop=True)
                 df[tag] = 1
                 result = simulate(df)
                 if result and result <= target_days:
                     suggestions[f"题材标签：{tag}"] = "建议添加该标签"
                     break
 
-
     return suggestions
+
 
 st.set_page_config(layout="wide")
 st.title("🎭 剧目营收预测系统")
@@ -634,6 +635,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
