@@ -171,23 +171,27 @@ if uploaded_file:
         fig, ax1 = plt.subplots(figsize=(12, 5))
 
         # 条形图：每场次营业收入
-        ax1.bar(show_df["场次时间"], show_df["营业收入"], color="#4CAF50", label="单场营收")
+        ax1.bar(selected_rows["场次时间"], selected_rows["营业收入"], color="#4CAF50", label="单场营收")
         ax1.set_xlabel("场次时间")
         ax1.set_ylabel("营业收入", color="#4CAF50")
         ax1.tick_params(axis='y', labelcolor="#4CAF50")
 
         # 累计营收折线图
-        cumulative = show_df["营业收入"].cumsum()
+        cumulative = selected_rows["营业收入"].cumsum()
         ax2 = ax1.twinx()
-        ax2.plot(show_df["场次时间"], cumulative, color="#2196F3", marker='o', label="累计营收")
+        ax2.plot(selected_rows["场次时间"], cumulative, color="#2196F3", marker='o', label="累计营收")
         ax2.set_ylabel("累计营收", color="#2196F3")
         ax2.tick_params(axis='y', labelcolor="#2196F3")
 
-        # 标题 & 图例
-        fig.suptitle(f"{selected_show} 营收趋势图", fontsize=14)
+        # 图例
+        lines_1, labels_1 = ax1.get_legend_handles_labels()
+        lines_2, labels_2 = ax2.get_legend_handles_labels()
+        ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="upper left")
+
+        # 标题
+        fig.suptitle(f"{selected_name} 营收趋势图", fontsize=14)
         fig.tight_layout()
         st.pyplot(fig)
-
 
     st.markdown("---")
 
@@ -332,6 +336,7 @@ if uploaded_file:
                 file_name="预测结果.csv",
                 mime="text/csv"
             )
+
 
 
 
