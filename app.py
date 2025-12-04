@@ -177,10 +177,7 @@ if uploaded_file:
     elif model_name == "MLP (多层感知机)":
         model = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
 
-    # 清洗训练数据，去除含 NaN 或 inf 的样本
-    mask = np.isfinite(X_train).all(axis=1) & np.isfinite(y_train)
-    X_train = X_train[mask]
-    y_train = y_train[mask]
+
 
     # 模型训练
     model.fit(X_train, y_train)
@@ -444,6 +441,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
