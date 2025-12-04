@@ -346,12 +346,62 @@ if uploaded_file:
                 schedule_df["预测营收"] = y_new
     
                 # 📊 可视化
-                fig, ax = plt.subplots(figsize=(12, 5))
-                ax.plot(schedule_df["场次时间"], schedule_df["预测营收"], marker='o', color="#2196F3")
-                ax.set_title("新剧每场次预测营收")
-                ax.set_xlabel("场次时间")
-                ax.set_ylabel("预测营收")
-                st.pyplot(fig)
+                # 添加预测营收
+                schedule_df["预测营收"] = y_new
+                
+                # 计算累计营收
+                schedule_df["累计预测营收"] = schedule_df["预测营收"].cumsum()
+                
+                # 计算成本
+                num_shows = len(schedule_df)
+                period = (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
+                admin_cost = monthly_admin * (period / 30)
+                
+                # 每场管理成本（平均分摊）
+                admin_per_show = admin_cost / num_shows
+                schedule_df["累计成本"] = one_time_cost + per_show_cost * np.arange(1, num_shows + 1) + admin_per_show * np.arange(1, num_shows + 1)
+                
+                # 每场收益、累计收益
+                schedule_df["每场收益"] = schedule_df["预测营收"] - (per_show_cost + admin_per_show)
+                schedule_df["累计收益"] = schedule_df["每场收益"].cumsum()
+                
+                # 图 1：每场预测营收（条形图）
+                st.subheader("📊 每场预测营收（条形图）")
+                fig1, ax1 = plt.subplots(figsize=(12, 5))
+                ax1.bar(schedule_df["场次时间"], schedule_df["预测营收"], color="#2196F3")
+                ax1.set_title("每场次预测营收")
+                ax1.set_xlabel("场次时间")
+                ax1.set_ylabel("预测营收（元）")
+                ax1.tick_params(axis='x', rotation=45)
+                st.pyplot(fig1)
+                
+                # 图 2：累计营收 vs 累计成本（折线图）
+                st.subheader("📈 累计营收 vs 累计成本")
+                fig2, ax2 = plt.subplots(figsize=(12, 5))
+                ax2.plot(schedule_df["场次时间"], schedule_df["累计预测营收"], marker='o', label="累计预测营收", color="#2196F3")
+                ax2.plot(schedule_df["场次时间"], schedule_df["累计成本"], marker='s', label="累计成本", color="#FF5722")
+                ax2.set_title("累计营收 vs 累计成本")
+                ax2.set_xlabel("场次时间")
+                ax2.set_ylabel("金额（元）")
+                ax2.legend()
+                ax2.grid(True)
+                ax2.tick_params(axis='x', rotation=45)
+                st.pyplot(fig2)
+                
+                # 图 3：每场收益（条形）+ 累计收益（折线）复合图
+                st.subheader("💹 每场收益 + 累计收益")
+                fig3, ax3 = plt.subplots(figsize=(12, 5))
+                ax3.bar(schedule_df["场次时间"], schedule_df["每场收益"], label="每场收益", color="#4CAF50")
+                ax3.set_ylabel("每场收益（元）", color="#4CAF50")
+                ax3.tick_params(axis='x', rotation=45)
+                
+                ax4 = ax3.twinx()
+                ax4.plot(schedule_df["场次时间"], schedule_df["累计收益"], label="累计收益", color="#9C27B0", marker='o')
+                ax4.set_ylabel("累计收益（元）", color="#9C27B0")
+                
+                fig3.tight_layout()
+                st.pyplot(fig3)
+
     
                 # 💵 收益分析
                 st.subheader("💵 成本与收益分析")
@@ -380,5 +430,6 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
