@@ -149,7 +149,7 @@ if uploaded_file:
     score = r2_score(y_test, y_pred)
     st.success(f"模型 R² 分数：{score:.4f}")
 
-        st.markdown("---")
+    st.markdown("---")
     st.subheader("🎯 选择已有剧目进行预测")
     selected_name = st.selectbox("选择剧目", df["话剧名称"].unique())
     selected_rows = df[df["话剧名称"] == selected_name].copy()
@@ -320,6 +320,7 @@ if uploaded_file:
                 file_name="预测结果.csv",
                 mime="text/csv"
             )
+
 
 
 
