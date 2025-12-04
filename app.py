@@ -177,31 +177,7 @@ if uploaded_file:
     elif model_name == "MLP (多层感知机)":
         model = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
 
-
-    # 将 inf 替换为 NaN
-    X_train = X_train.replace([np.inf, -np.inf], np.nan)
-    y_train = y_train.replace([np.inf, -np.inf], np.nan)
-    
-    # 合并为一个 DataFrame 统一清洗
-    train_df = pd.concat([X_train, y_train], axis=1)
-    
-    # 删除含 NaN 的行
-    train_df = train_df.dropna()
-    
-    # 拆分回 X 和 y
-    X_train_clean = train_df.iloc[:, :-1].astype(float)
-    y_train_clean = train_df.iloc[:, -1]
-
-
-    # 模型训练
-    print("X_train_clean shape:", X_train_clean.shape)
-    print("X_train_clean dtypes:\n", X_train_clean.dtypes)
-    print("y_train_clean shape:", y_train_clean.shape)
-    print("是否有 NaN:", X_train_clean.isnull().any().any(), y_train_clean.isnull().any())
-    print("X_train_clean head:\n", X_train_clean.head())
-    print("y_train_clean head:\n", y_train_clean.head())
-
-    model.fit(X_train_clean, y_train_clean)
+    model.fit(X_train, y_train)
 
 
 
@@ -464,6 +440,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
