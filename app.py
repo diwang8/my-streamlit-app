@@ -306,13 +306,8 @@ if uploaded_file:
     
         # 💰 成本参数设置（不参与模型预测）
         st.markdown("### 💰 成本参数设置（仅用于收益分析）")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            one_time_cost = st.number_input("一次性成本", value=50000)
-        with col2:
-            per_show_cost = st.number_input("每场演出成本", value=300)
-        with col3:
-            monthly_admin = st.number_input("每月管理成本", value=8000)
+        one_time_cost, per_show_cost, monthly_admin = collect_cost_inputs()
+
     
         # 🚀 开始预测
         if st.button("开始预测"):
@@ -385,4 +380,5 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
