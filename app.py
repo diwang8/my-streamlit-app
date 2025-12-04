@@ -329,12 +329,12 @@ if uploaded_file:
         st.markdown("### 💰 成本参数设置（仅用于收益分析）")
         one_time_cost, per_show_cost, monthly_admin = collect_cost_inputs()
 
+        # 获取分成参数
+        venue_share, tax_rate, channel_share, investor_share_payback, investor_share_profit = collect_distribution_inputs()
     
         # 🚀 开始预测
         if st.button("开始预测"):
             # 构建输入数据
-            # 获取分成参数
-            venue_share, tax_rate, channel_share, investor_share_payback, investor_share_profit = collect_distribution_inputs()
 
             input_dict = {
                 "剧目类型": type_map[show_type],
@@ -503,6 +503,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
