@@ -63,59 +63,81 @@ st.set_page_config(layout="wide")
 st.title("🎭 剧目营收预测系统")
 
 def collect_cost_inputs():
-    st.markdown("## 💰 成本参数设置")
+    st.markdown("## 💰 成本参数设置（仅用于收益分析）")
 
-    st.markdown("### 一次性投入成本")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        cost_director = st.number_input("导演", value=75000)
-        cost_writer = st.number_input("编剧/作词", value=75000)
-        cost_music = st.number_input("音乐创作及编曲", value=75000)
-        cost_recording = st.number_input("音乐录制", value=75000)
-        cost_costume = st.number_input("服装设计与制作", value=50000)
-    with col2:
-        cost_light = st.number_input("灯光设计与落地", value=30000)
-        cost_choreography = st.number_input("编舞设计", value=20000)
-        cost_stage = st.number_input("剧场及舞美设计", value=50000)
-        cost_audio = st.number_input("音效设计", value=30000)
-        cost_acoustics = st.number_input("声场声效设计", value=50000)
-    with col3:
-        cost_visual = st.number_input("视觉设计", value=20000)
-        cost_emergency = st.number_input("应急预算（创作）", value=50000)
-        cost_fire = st.number_input("消防设计+施工", value=300000)
-        cost_hard = st.number_input("硬装设计+施工+监控", value=380000)
-        cost_soft = st.number_input("舞美软装道具+化妆间+吧台", value=380000)
+    def input_group(title, items):
+        st.markdown(f"#### {title}")
+        values = {}
+        for key, label, default in items:
+            values[key] = st.number_input(f"{label}", value=default, step=100)
+        return values
 
-    one_time_cost = sum([
-        cost_director, cost_writer, cost_music, cost_recording, cost_costume,
-        cost_light, cost_choreography, cost_stage, cost_audio, cost_acoustics,
-        cost_visual, cost_emergency, cost_fire, cost_hard, cost_soft
+    # 一次性成本
+    creation_costs = input_group("明细1 剧目创作", [
+        ("1.1", "版权使用费", 0),
+        ("1.2", "导演", 75000),
+        ("1.3", "编剧/作词", 75000),
+        ("1.4", "音乐创作及编曲", 75000),
+        ("1.5", "音乐录制", 75000),
+        ("1.6", "服装设计与制作", 50000),
+        ("1.7", "灯光设计与落地", 30000),
+        ("1.8", "编舞设计", 20000),
+        ("1.9", "剧场及舞美设计", 50000),
+        ("1.10", "音效设计", 30000),
+        ("1.11", "声场声效设计", 50000),
+        ("1.12", "多媒体设计", 0),
+        ("1.13", "视觉设计", 20000),
+        ("1.14", "应急预算", 50000),
+    ])
+    theater_costs = input_group("明细2 剧场相关", [
+        ("2.1", "消防设计+施工", 300000),
+        ("2.2", "硬装设计+施工+监控", 380000),
+        ("2.3", "舞美软装道具+化妆间+吧台", 380000),
+        ("2.4", "灯音麦等设备", 380000),
+        ("2.5", "宽带网络", 10000),
+        ("2.6", "物业费", 150000),
+        ("2.7", "应急预算", 100000),
+    ])
+    rehearsal_costs = input_group("明细3 人员排练", [
+        ("3.1", "大舞监（含行政运营）", 100000),
+        ("3.2", "小舞监", 40000),
+        ("3.3", "技术执行", 25000),
+        ("3.4", "排练费", 75000),
+        ("3.5", "排练场地", 30000),
+        ("3.6", "卡米工资", 240000),
+        ("3.7", "应急预算", 30000),
+    ])
+    promo_costs = input_group("明细4 宣发相关", [
+        ("4.1", "剧目宣发及物料制作", 10000),
+        ("4.2", "票务平台", 10000),
+        ("4.3", "宣发营销", 10000),
+        ("4.4", "应急预算", 10000),
     ])
 
-    st.markdown("### 持续性投入成本（单位：元/场）")
-    col4, col5, col6 = st.columns(3)
-    with col4:
-        cost_actor = st.number_input("演员", value=6000)
-        cost_makeup = st.number_input("服化", value=700)
-        cost_audio_op = st.number_input("音控", value=500)
-    with col5:
-        cost_light_op = st.number_input("灯", value=500)
-        cost_stage_mgr = st.number_input("舞监", value=500)
-        cost_manager = st.number_input("剧场经理", value=400)
-    with col6:
-        cost_parttime = st.number_input("兼职", value=500)
-        cost_props = st.number_input("消耗型道具", value=800)
-        cost_cleaning = st.number_input("保洁", value=214.29)
+    one_time_cost = sum(creation_costs.values()) + sum(theater_costs.values()) + sum(rehearsal_costs.values()) + sum(promo_costs.values())
 
-    per_show_cost = sum([
-        cost_actor, cost_makeup, cost_audio_op, cost_light_op,
-        cost_stage_mgr, cost_manager, cost_parttime, cost_props, cost_cleaning
+    # 每场成本
+    per_show_costs = input_group("🎭 每场演出成本", [
+        ("演员", "演员", 6000),
+        ("服化", "服化", 700),
+        ("音控", "音控", 500),
+        ("灯", "灯", 500),
+        ("舞监", "舞监", 500),
+        ("剧场经理", "剧场经理", 400),
+        ("兼职", "兼职", 500),
+        ("消耗型道具", "消耗型道具", 800),
+        ("保洁", "保洁", 214.2),
     ])
+    per_show_cost = sum(per_show_costs.values())
 
-    st.markdown("### 管理费用")
-    monthly_admin = st.number_input("管理费用（元/月）", value=120000)
+    # 每月管理费用
+    st.markdown("#### 管理费用")
+    monthly_admin = st.number_input("管理费用（固定）", value=120000)
+    monthly_property = st.number_input("物业费用", value=0)
+    monthly_cost = monthly_admin + monthly_property
 
-    return one_time_cost, per_show_cost, monthly_admin
+    return one_time_cost, per_show_cost, monthly_cost
+
 
 
 
@@ -323,7 +345,7 @@ if uploaded_file:
                 "剧场规模": scale_map[scale],
                 "剧场区域": region_map[region]
             }
-    
+        
             schedule_df = pd.DataFrame({
                 "场次时间": all_times,
                 "星期几": [dt.weekday() for dt in all_times],
@@ -335,46 +357,79 @@ if uploaded_file:
                 "最低价格": min_price,
                 "周期": (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
             })
-    
+        
             for k, v in input_dict.items():
                 schedule_df[k] = v
             for tag, val in tag_values.items():
                 schedule_df[tag] = val
-    
+        
             # one-hot 编码
             X_new = pd.get_dummies(schedule_df.drop(columns=["场次时间"]))
             X_new = X_new.reindex(columns=X.columns, fill_value=0)
-    
+        
             # 模型预测
             try:
                 y_new = model.predict(X_new)
                 schedule_df["预测营收"] = y_new
-    
-                # 📊 可视化
-                fig, ax = plt.subplots(figsize=(12, 5))
-                ax.plot(schedule_df["场次时间"], schedule_df["预测营收"], marker='o', color="#2196F3")
-                ax.set_title("新剧每场次预测营收")
-                ax.set_xlabel("场次时间")
-                ax.set_ylabel("预测营收")
-                st.pyplot(fig)
-    
-                # 💵 收益分析
-                st.subheader("💵 成本与收益分析")
+        
+                # 成本与收益计算
                 num_shows = len(schedule_df)
-                period = (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
-                admin_cost = monthly_admin * (period / 30)
-                recurring_cost = per_show_cost * num_shows
-                total_cost = one_time_cost + recurring_cost + admin_cost
-                total_revenue = schedule_df["预测营收"].sum()
-    
+                period_days = (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
+                months = period_days / 30
+                monthly_cost_total = monthly_cost * months
+                total_cost = one_time_cost + per_show_cost * num_shows + monthly_cost_total
+        
+                per_show_fixed = one_time_cost / num_shows if num_shows > 0 else 0
+                per_show_monthly = monthly_cost_total / num_shows if num_shows > 0 else 0
+                schedule_df["每场成本"] = per_show_fixed + per_show_cost + per_show_monthly
+                schedule_df["每场收益"] = schedule_df["预测营收"] - schedule_df["每场成本"]
+                schedule_df["累计营收"] = schedule_df["预测营收"].cumsum()
+                schedule_df["累计成本"] = schedule_df["每场成本"].cumsum()
+                schedule_df["累计收益"] = schedule_df["每场收益"].cumsum()
+        
+                # 图1：预测营收
+                st.subheader("📊 每场预测营收")
+                fig1, ax1 = plt.subplots(figsize=(12, 5))
+                ax1.bar(schedule_df["场次时间"], schedule_df["预测营收"], color="#2196F3")
+                ax1.set_title("每场预测营收")
+                ax1.set_xlabel("场次时间")
+                ax1.set_ylabel("营收（元）")
+                ax1.grid(True, axis='y')
+                st.pyplot(fig1)
+        
+                # 图2：累计营收 vs 成本
+                st.subheader("📈 累计营收 vs 累计成本")
+                fig2, ax2 = plt.subplots(figsize=(12, 5))
+                ax2.plot(schedule_df["场次时间"], schedule_df["累计营收"], label="累计营收", marker='o')
+                ax2.plot(schedule_df["场次时间"], schedule_df["累计成本"], label="累计成本", marker='s')
+                ax2.set_title("累计营收与成本对比")
+                ax2.set_xlabel("场次时间")
+                ax2.set_ylabel("金额（元）")
+                ax2.legend()
+                ax2.grid(True)
+                st.pyplot(fig2)
+        
+                # 图3：每场收益 + 累计收益
+                st.subheader("📉 每场收益与累计收益")
+                fig3, ax3 = plt.subplots(figsize=(12, 5))
+                ax3.bar(schedule_df["场次时间"], schedule_df["每场收益"], color="#4CAF50", label="每场收益")
+                ax4 = ax3.twinx()
+                ax4.plot(schedule_df["场次时间"], schedule_df["累计收益"], color="#FF5722", label="累计收益", marker='o')
+                ax3.set_xlabel("场次时间")
+                ax3.set_ylabel("每场收益", color="#4CAF50")
+                ax4.set_ylabel("累计收益", color="#FF5722")
+                fig3.legend(loc="upper left")
+                fig3.tight_layout()
+                st.pyplot(fig3)
+        
+                # 总结
                 st.markdown(f"- 场次数：**{num_shows} 场**")
-                st.markdown(f"- 预测总营收：**{total_revenue:,.2f} 元**")
+                st.markdown(f"- 预测总营收：**{schedule_df['预测营收'].sum():,.2f} 元**")
                 st.markdown(f"- 总成本：**{total_cost:,.2f} 元**")
-                st.markdown(f"- 预计利润：**{total_revenue - total_cost:,.2f} 元**")
-    
-                # 💾 导出
-                export_df = schedule_df[["场次时间", "预测营收"]].copy()
-                export_df["累计预测营收"] = export_df["预测营收"].cumsum()
+                st.markdown(f"- 预计利润：**{schedule_df['预测营收'].sum() - total_cost:,.2f} 元**")
+        
+                # 导出
+                export_df = schedule_df[["场次时间", "预测营收", "每场成本", "每场收益", "累计营收", "累计成本", "累计收益"]]
                 csv = export_df.to_csv(index=False).encode("utf-8-sig")
                 st.download_button(
                     label="📥 下载预测结果 CSV",
@@ -382,8 +437,7 @@ if uploaded_file:
                     file_name="预测结果.csv",
                     mime="text/csv"
                 )
+        
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
-
-
