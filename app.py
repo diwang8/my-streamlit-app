@@ -168,14 +168,26 @@ if uploaded_file:
         selected_rows["预测营收"] = y_pred
         selected_rows = selected_rows.sort_values("场次时间")
 
-        fig, ax = plt.subplots(figsize=(12, 5))
-        ax.plot(selected_rows["场次时间"], selected_rows["营业收入"], marker='o', label="实际营收", color="#4CAF50")
-        ax.plot(selected_rows["场次时间"], selected_rows["预测营收"], marker='o', label="预测营收", color="#2196F3")
-        ax.set_title(f"{selected_name} 每场次营收对比")
-        ax.set_xlabel("场次时间")
-        ax.set_ylabel("营收")
-        ax.legend()
+        fig, ax1 = plt.subplots(figsize=(12, 5))
+
+        # 条形图：每场次营业收入
+        ax1.bar(show_df["场次时间"], show_df["营业收入"], color="#4CAF50", label="单场营收")
+        ax1.set_xlabel("场次时间")
+        ax1.set_ylabel("营业收入", color="#4CAF50")
+        ax1.tick_params(axis='y', labelcolor="#4CAF50")
+
+        # 累计营收折线图
+        cumulative = show_df["营业收入"].cumsum()
+        ax2 = ax1.twinx()
+        ax2.plot(show_df["场次时间"], cumulative, color="#2196F3", marker='o', label="累计营收")
+        ax2.set_ylabel("累计营收", color="#2196F3")
+        ax2.tick_params(axis='y', labelcolor="#2196F3")
+
+        # 标题 & 图例
+        fig.suptitle(f"{selected_show} 营收趋势图", fontsize=14)
+        fig.tight_layout()
         st.pyplot(fig)
+
 
     st.markdown("---")
 
@@ -320,6 +332,7 @@ if uploaded_file:
                 file_name="预测结果.csv",
                 mime="text/csv"
             )
+
 
 
 
