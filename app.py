@@ -73,21 +73,23 @@ def suggest_parameter_adjustments(
             X_new = X_new.reindex(columns=X_columns, fill_value=0)
             y_pred = model.predict(X_new)
             df["预测营收"] = y_pred * (1 - venue_share - tax_rate - channel_share)
-
+    
             num_shows = len(df)
-            admin_cost = monthly_admin * (current_days / 30)
+            period_days = (df["场次时间"].max() - df["场次时间"].min()).days + 1
+            admin_cost = monthly_admin * (period_days / 30)
             admin_per_show = admin_cost / num_shows
             df["每场收益"] = df["预测营收"] - (per_show_cost + admin_per_show)
-
+    
             investor_cum_profit = 0
             for i, profit in enumerate(df["每场收益"]):
                 investor_ratio = investor_share_payback if investor_cum_profit < one_time_cost else investor_share_profit
                 investor_cum_profit += profit * investor_ratio
                 if investor_cum_profit >= one_time_cost:
                     return (df.iloc[i]["场次时间"] - pd.to_datetime(start_date)).days
-        except:
+        except Exception as e:
             return None
         return None
+
 
     for param in selected_optimizable:
         if param == "最高价格":
@@ -635,6 +637,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
