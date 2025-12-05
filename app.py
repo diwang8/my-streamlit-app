@@ -408,7 +408,12 @@ if uploaded_file:
         weekly_plan = {}
     
         for i in range(7):
-            choice = st.selectbox(f"{weekday_map[i]}", time_options, key=f"weekday_{i}")
+            if i < 5:
+                default_choice = "19:30"
+            else:
+                default_choice = "14:30 和 19:30"
+            choice = st.selectbox(f"{weekday_map[i]}", time_options, index=time_options.index(default_choice), key=f"weekday_{i}")
+
             if choice == "14:30":
                 weekly_plan[str(i)] = ["14:30"]
             elif choice == "19:30":
@@ -637,6 +642,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
