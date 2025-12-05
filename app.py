@@ -264,32 +264,57 @@ st.title("🎭 剧目营收预测系统")
 
 def collect_cost_inputs():
     st.markdown("## 💰 成本参数设置")
-
     st.markdown("### 一次性投入成本")
+
     col1, col2, col3 = st.columns(3)
     with col1:
+        cost_copyright = st.number_input("版权使用费", value=0)
         cost_director = st.number_input("导演", value=75000)
         cost_writer = st.number_input("编剧/作词", value=75000)
         cost_music = st.number_input("音乐创作及编曲", value=75000)
         cost_recording = st.number_input("音乐录制", value=75000)
         cost_costume = st.number_input("服装设计与制作", value=50000)
-    with col2:
         cost_light = st.number_input("灯光设计与落地", value=30000)
         cost_choreography = st.number_input("编舞设计", value=20000)
+
+    with col2:
         cost_stage = st.number_input("剧场及舞美设计", value=50000)
         cost_audio = st.number_input("音效设计", value=30000)
         cost_acoustics = st.number_input("声场声效设计", value=50000)
-    with col3:
+        cost_multimedia = st.number_input("多媒体设计", value=0)
         cost_visual = st.number_input("视觉设计", value=20000)
-        cost_emergency = st.number_input("应急预算（创作）", value=50000)
+        cost_emergency1 = st.number_input("应急预算（创作）", value=50000)
         cost_fire = st.number_input("消防设计+施工", value=300000)
         cost_hard = st.number_input("硬装设计+施工+监控", value=380000)
+
+    with col3:
         cost_soft = st.number_input("舞美软装道具+化妆间+吧台", value=380000)
+        cost_equipment = st.number_input("灯音麦等设备", value=380000)
+        cost_network = st.number_input("宽带网络", value=10000)
+        cost_property = st.number_input("物业费", value=150000)
+        cost_emergency2 = st.number_input("应急预算（运营）", value=100000)
+        cost_manager_big = st.number_input("大舞监（含行政运营）", value=100000)
+        cost_manager_small = st.number_input("小舞监", value=40000)
+        cost_tech = st.number_input("技术执行", value=25000)
+        cost_rehearsal = st.number_input("排练费", value=75000)
+        cost_rehearsal_place = st.number_input("排练场地", value=30000)
+        cost_kami = st.number_input("卡米工资", value=240000)
+        cost_emergency3 = st.number_input("应急预算（其他）", value=30000)
+        cost_material = st.number_input("剧目宣发及物料制作", value=10000)
+        cost_ticketing = st.number_input("票务平台", value=10000)
+        cost_marketing = st.number_input("宣发营销", value=10000)
+        cost_emergency4 = st.number_input("应急预算（宣传）", value=10000)
+        cost_operation = st.number_input("运营投入", value=700000)
 
     one_time_cost = sum([
-        cost_director, cost_writer, cost_music, cost_recording, cost_costume,
-        cost_light, cost_choreography, cost_stage, cost_audio, cost_acoustics,
-        cost_visual, cost_emergency, cost_fire, cost_hard, cost_soft
+        cost_copyright, cost_director, cost_writer, cost_music, cost_recording,
+        cost_costume, cost_light, cost_choreography, cost_stage, cost_audio,
+        cost_acoustics, cost_multimedia, cost_visual, cost_emergency1, cost_fire,
+        cost_hard, cost_soft, cost_equipment, cost_network, cost_property,
+        cost_emergency2, cost_manager_big, cost_manager_small, cost_tech,
+        cost_rehearsal, cost_rehearsal_place, cost_kami, cost_emergency3,
+        cost_material, cost_ticketing, cost_marketing, cost_emergency4,
+        cost_operation
     ])
 
     st.markdown("### 持续性投入成本（单位：元/场）")
@@ -312,10 +337,18 @@ def collect_cost_inputs():
         cost_stage_mgr, cost_manager, cost_parttime, cost_props, cost_cleaning
     ])
 
-    st.markdown("### 管理费用")
-    monthly_admin = st.number_input("管理费用（元/月）", value=120000)
+    st.markdown("### 管理费用（按月）")
+    col_admin1, col_admin2 = st.columns(2)
+    with col_admin1:
+        monthly_admin_fixed = st.number_input("管理费用（固定）", value=120000)
+    with col_admin2:
+        monthly_property = st.number_input("物业费用", value=0)
+    
+    monthly_admin = monthly_admin_fixed + monthly_property
+
 
     return one_time_cost, per_show_cost, monthly_admin
+
     
 def collect_distribution_inputs():
     st.markdown("### 📊 收入分成参数设置")
@@ -736,6 +769,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
