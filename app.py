@@ -72,22 +72,34 @@ def suggest_parameter_adjustments(
             X_new = X_new.reindex(columns=X_columns, fill_value=0)
             y_pred = model.predict(X_new)
             df["预测营收"] = y_pred * (1 - venue_share - tax_rate - channel_share)
-
+    
             num_shows = len(df)
             period_days = (df["场次时间"].max() - df["场次时间"].min()).days + 1
             admin_cost = monthly_admin * (period_days / 30)
             admin_per_show = admin_cost / num_shows
             df["每场收益"] = df["预测营收"] - (per_show_cost + admin_per_show)
-
-            investor_cum_profit = 0
-            for i, profit in enumerate(df["每场收益"]):
-                investor_ratio = investor_share_payback if investor_cum_profit < one_time_cost else investor_share_profit
-                investor_cum_profit += profit * investor_ratio
-                if investor_cum_profit >= one_time_cost:
-                    return (df.iloc[i]["场次时间"] - pd.to_datetime(start_date)).days
+    
+            # 与主流程一致的投资者回本判断逻辑
+            investor_share = []
+            cumulative_profit = 0
+            for profit in df["每场收益"]:
+                cumulative_profit += profit
+                if cumulative_profit < one_time_cost:
+                    investor_ratio = investor_share_payback
+                else:
+                    investor_ratio = investor_share_profit
+                investor_share.append(profit * investor_ratio)
+    
+            df["投资者收益"] = investor_share
+            df["累计投资者收益"] = df["投资者收益"].cumsum()
+    
+            payback_row = df[df["累计投资者收益"] >= one_time_cost].head(1)
+            if not payback_row.empty:
+                return (payback_row["场次时间"].values[0] - pd.to_datetime(start_date)).days
         except:
             return None
         return None
+
 
     if len(selected_optimizable) != 1:
         return {"⚠️ 参数选择错误": "一次只能选择一个优化参数，请重新选择"}
@@ -713,6 +725,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
