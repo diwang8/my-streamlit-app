@@ -94,143 +94,143 @@ def suggest_parameter_adjustments(
 
     param = selected_optimizable[0]
 
-        if param == "最高价格":
-            current_price = base_df["最高价格"].iloc[0]
-            best_result = None
-            best_price = None
-            closest_diff = None
-    
-            for price in range(int(current_price) + 20, int(current_price * 2) + 1, 20):
-                df = base_df.copy().reset_index(drop=True)
-                df["最高价格"] = price
-                df["最低价格"] = price * 0.5
-                result = simulate(df)
-                if result and result <= target_days:
-                    diff = abs(result - target_days)
-                    if closest_diff is None or diff < closest_diff:
-                        best_result = result
-                        best_price = price
-                        closest_diff = diff
-    
-            if best_result is not None:
-                suggestions["最高价格"] = f"建议提高至 {best_price} 元（投资者回本周期：{best_result} 天）"
-                return suggestions
-    
-        elif param == "周期":
-            current_days = (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
-            best_result = None
-            best_days = None
-            closest_diff = None
-    
-            for extra_days in range(30, 181, 30):
-                new_end = pd.to_datetime(start_date) + pd.Timedelta(days=current_days + extra_days)
-                new_times = generate_show_schedule(pd.to_datetime(start_date), new_end, weekly_plan)
-                if not new_times:
-                    continue
-                df = base_df.copy()
-                df = df.iloc[:len(new_times)].copy().reset_index(drop=True)
-                new_times = new_times[:len(df)]
-                df["场次时间"] = new_times
-                df["周期"] = (new_end - pd.to_datetime(start_date)).days
-                result = simulate(df)
-                if result and result <= target_days:
-                    diff = abs(result - target_days)
-                    if closest_diff is None or diff < closest_diff:
-                        best_result = result
-                        best_days = df["周期"].iloc[0]
-                        closest_diff = diff
-    
-            if best_result is not None:
-                suggestions["周期"] = f"建议延长至 {best_days} 天（投资者回本周期：{best_result} 天）"
-                return suggestions
-    
-        elif param == "是否常驻":
-            best_result = None
-            best_val = None
-            closest_diff = None
-    
-            for val in [0, 1]:
-                if val == input_dict["是否常驻"]:
-                    continue
-                df = base_df.copy().reset_index(drop=True)
-                df["是否常驻"] = val
-                result = simulate(df)
-                if result and result <= target_days:
-                    diff = abs(result - target_days)
-                    if closest_diff is None or diff < closest_diff:
-                        best_result = result
-                        best_val = val
-                        closest_diff = diff
-    
-            if best_result is not None:
-                suggestions["是否常驻"] = f"建议设为 {'是' if best_val == 1 else '否'}（投资者回本周期：{best_result} 天）"
-                return suggestions
-    
-        elif param == "剧场规模":
-            best_result = None
-            best_val = None
-            closest_diff = None
-    
-            for val in [0, 1]:
-                if val == input_dict["剧场规模"]:
-                    continue
-                df = base_df.copy().reset_index(drop=True)
-                df["剧场规模"] = val
-                result = simulate(df)
-                if result and result <= target_days:
-                    diff = abs(result - target_days)
-                    if closest_diff is None or diff < closest_diff:
-                        best_result = result
-                        best_val = val
-                        closest_diff = diff
-    
-            if best_result is not None:
-                suggestions["剧场规模"] = f"建议使用 {'大中剧场' if best_val == 1 else '小剧场'}（投资者回本周期：{best_result} 天）"
-                return suggestions
-    
-        elif param == "剧场区域":
-            best_result = None
-            best_val = None
-            closest_diff = None
-    
-            for val in region_map.values():
-                if val == input_dict["剧场区域"]:
-                    continue
-                df = base_df.copy().reset_index(drop=True)
-                df["剧场区域"] = val
-                result = simulate(df)
-                if result and result <= target_days:
-                    diff = abs(result - target_days)
-                    if closest_diff is None or diff < closest_diff:
-                        best_result = result
-                        best_val = val
-                        closest_diff = diff
-    
-            if best_result is not None:
-                suggestions["剧场区域"] = f"建议调整为 {reverse_region_map[best_val]}（投资者回本周期：{best_result} 天）"
-                return suggestions
-    
-        elif param == "题材标签":
-            best_result = None
-            best_tag = None
-            closest_diff = None
-    
-            for tag, val in tag_values.items():
-                if val == 1:
-                    continue
-                df = base_df.copy().reset_index(drop=True)
-                df[tag] = 1
-                result = simulate(df)
-                if result and result <= target_days:
-                    diff = abs(result - target_days)
-                    if closest_diff is None or diff < closest_diff:
-                        best_result = result
-                        best_tag = tag
-                        closest_diff = diff
-    
-            if best_result is not None:
-                suggestions[f"题材标签：{best_tag}"] = f"建议添加该标签（投资者回本周期：{best_result} 天）"
-                return suggestions
+    if param == "最高价格":
+        current_price = base_df["最高价格"].iloc[0]
+        best_result = None
+        best_price = None
+        closest_diff = None
+
+        for price in range(int(current_price) + 20, int(current_price * 2) + 1, 20):
+            df = base_df.copy().reset_index(drop=True)
+            df["最高价格"] = price
+            df["最低价格"] = price * 0.5
+            result = simulate(df)
+            if result and result <= target_days:
+                diff = abs(result - target_days)
+                if closest_diff is None or diff < closest_diff:
+                    best_result = result
+                    best_price = price
+                    closest_diff = diff
+
+        if best_result is not None:
+            suggestions["最高价格"] = f"建议提高至 {best_price} 元（投资者回本周期：{best_result} 天）"
+            return suggestions
+
+    elif param == "周期":
+        current_days = (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
+        best_result = None
+        best_days = None
+        closest_diff = None
+
+        for extra_days in range(30, 181, 30):
+            new_end = pd.to_datetime(start_date) + pd.Timedelta(days=current_days + extra_days)
+            new_times = generate_show_schedule(pd.to_datetime(start_date), new_end, weekly_plan)
+            if not new_times:
+                continue
+            df = base_df.copy()
+            df = df.iloc[:len(new_times)].copy().reset_index(drop=True)
+            new_times = new_times[:len(df)]
+            df["场次时间"] = new_times
+            df["周期"] = (new_end - pd.to_datetime(start_date)).days
+            result = simulate(df)
+            if result and result <= target_days:
+                diff = abs(result - target_days)
+                if closest_diff is None or diff < closest_diff:
+                    best_result = result
+                    best_days = df["周期"].iloc[0]
+                    closest_diff = diff
+
+        if best_result is not None:
+            suggestions["周期"] = f"建议延长至 {best_days} 天（投资者回本周期：{best_result} 天）"
+            return suggestions
+
+    elif param == "是否常驻":
+        best_result = None
+        best_val = None
+        closest_diff = None
+
+        for val in [0, 1]:
+            if val == input_dict["是否常驻"]:
+                continue
+            df = base_df.copy().reset_index(drop=True)
+            df["是否常驻"] = val
+            result = simulate(df)
+            if result and result <= target_days:
+                diff = abs(result - target_days)
+                if closest_diff is None or diff < closest_diff:
+                    best_result = result
+                    best_val = val
+                    closest_diff = diff
+
+        if best_result is not None:
+            suggestions["是否常驻"] = f"建议设为 {'是' if best_val == 1 else '否'}（投资者回本周期：{best_result} 天）"
+            return suggestions
+
+    elif param == "剧场规模":
+        best_result = None
+        best_val = None
+        closest_diff = None
+
+        for val in [0, 1]:
+            if val == input_dict["剧场规模"]:
+                continue
+            df = base_df.copy().reset_index(drop=True)
+            df["剧场规模"] = val
+            result = simulate(df)
+            if result and result <= target_days:
+                diff = abs(result - target_days)
+                if closest_diff is None or diff < closest_diff:
+                    best_result = result
+                    best_val = val
+                    closest_diff = diff
+
+        if best_result is not None:
+            suggestions["剧场规模"] = f"建议使用 {'大中剧场' if best_val == 1 else '小剧场'}（投资者回本周期：{best_result} 天）"
+            return suggestions
+
+    elif param == "剧场区域":
+        best_result = None
+        best_val = None
+        closest_diff = None
+
+        for val in region_map.values():
+            if val == input_dict["剧场区域"]:
+                continue
+            df = base_df.copy().reset_index(drop=True)
+            df["剧场区域"] = val
+            result = simulate(df)
+            if result and result <= target_days:
+                diff = abs(result - target_days)
+                if closest_diff is None or diff < closest_diff:
+                    best_result = result
+                    best_val = val
+                    closest_diff = diff
+
+        if best_result is not None:
+            suggestions["剧场区域"] = f"建议调整为 {reverse_region_map[best_val]}（投资者回本周期：{best_result} 天）"
+            return suggestions
+
+    elif param == "题材标签":
+        best_result = None
+        best_tag = None
+        closest_diff = None
+
+        for tag, val in tag_values.items():
+            if val == 1:
+                continue
+            df = base_df.copy().reset_index(drop=True)
+            df[tag] = 1
+            result = simulate(df)
+            if result and result <= target_days:
+                diff = abs(result - target_days)
+                if closest_diff is None or diff < closest_diff:
+                    best_result = result
+                    best_tag = tag
+                    closest_diff = diff
+
+        if best_result is not None:
+            suggestions[f"题材标签：{best_tag}"] = f"建议添加该标签（投资者回本周期：{best_result} 天）"
+            return suggestions
 
     suggestions["❌ 无法优化"] = "在当前参数范围内无法实现目标投资者回本周期"
     return suggestions
@@ -713,6 +713,7 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
 
 
 
