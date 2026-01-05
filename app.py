@@ -69,41 +69,74 @@ def generate_show_schedule(start_date, end_date, weekly_plan):
         current += timedelta(days=1)
     return sorted(all_slots)
 
+def generate_schedule_df(
+    start_date, end_date, weekly_plan, input_dict, tag_values,
+    max_price, min_price, holiday_list
+):
+    all_times = generate_show_schedule(pd.to_datetime(start_date), pd.to_datetime(end_date), weekly_plan)
+    if not all_times:
+        return None
+
+    df = pd.DataFrame({
+        "场次时间": all_times,
+        "星期几": [dt.weekday() for dt in all_times],
+        "是否下午场": [1 if dt.hour == 14 else 0 for dt in all_times],
+        "是否周末": [1 if dt.weekday() >= 5 else 0 for dt in all_times],
+        "是否节假日": [1 if dt.normalize() in holiday_list else 0 for dt in all_times],
+        "距开演首日的天数": [(dt - all_times[0]).days for dt in all_times],
+        "最高价格": max_price,
+        "最低价格": min_price,
+        "周期": (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
+    })
+
+    for k, v in input_dict.items():
+        df[k] = v
+    for tag, val in tag_values.items():
+        df[tag] = val
+
+    return df
+
+
 def suggest_parameter_adjustments(
-    base_df, model, X_columns, one_time_cost, per_show_cost, monthly_admin,
+    model, X_columns, one_time_cost, per_show_cost, monthly_admin,
     investor_share_payback, investor_share_profit, venue_share, tax_rate, channel_share,
     start_date, end_date, target_days,
-    input_dict, tag_values, selected_optimizable, weekly_plan, holiday_list
+    input_dict, tag_values, selected_optimizable, weekly_plan, holiday_list,
+    max_price, min_price
 ):
     suggestions = {}
 
-    def simulate(df):
+    def simulate(input_dict, tag_values, start_date, end_date, weekly_plan, max_price, min_price):
         try:
+            df = generate_schedule_df(
+                start_date, end_date, weekly_plan,
+                input_dict, tag_values,
+                max_price, min_price, holiday_list
+            )
+            if df is None:
+                return None
+
             X_new = pd.get_dummies(df.drop(columns=["场次时间"]))
             X_new = X_new.reindex(columns=X_columns, fill_value=0)
             y_pred = model.predict(X_new)
             df["预测营收"] = y_pred * (1 - venue_share - tax_rate - channel_share)
-    
+
             num_shows = len(df)
             period_days = (df["场次时间"].max() - df["场次时间"].min()).days + 1
             admin_cost = monthly_admin * (period_days / 30)
             admin_per_show = admin_cost / num_shows
             df["每场收益"] = df["预测营收"] - (per_show_cost + admin_per_show)
-    
-            # 与主流程一致的投资者回本判断逻辑
-            investor_share = []
+
             cumulative_profit = 0
+            investor_share_list = []
             for profit in df["每场收益"]:
                 cumulative_profit += profit
-                if cumulative_profit < one_time_cost:
-                    investor_ratio = investor_share_payback
-                else:
-                    investor_ratio = investor_share_profit
-                investor_share.append(profit * investor_ratio)
-    
-            df["投资者收益"] = investor_share
+                investor_ratio = investor_share_payback if cumulative_profit < one_time_cost else investor_share_profit
+                investor_share_list.append(profit * investor_ratio)
+
+            df["投资者收益"] = investor_share_list
             df["累计投资者收益"] = df["投资者收益"].cumsum()
-    
+
             payback_row = df[df["累计投资者收益"] >= one_time_cost].head(1)
             if not payback_row.empty:
                 return (payback_row["场次时间"].values[0] - pd.to_datetime(start_date)).days
@@ -111,23 +144,19 @@ def suggest_parameter_adjustments(
             return None
         return None
 
-
     if len(selected_optimizable) != 1:
         return {"⚠️ 参数选择错误": "一次只能选择一个优化参数，请重新选择"}
 
     param = selected_optimizable[0]
 
     if param == "最高价格":
-        current_price = base_df["最高价格"].iloc[0]
+        current_price = max_price
         best_result = None
         best_price = None
         closest_diff = None
 
         for price in range(int(current_price) + 20, int(current_price * 2) + 1, 20):
-            df = base_df.copy().reset_index(drop=True)
-            df["最高价格"] = price
-            df["最低价格"] = price * 0.5
-            result = simulate(df)
+            result = simulate(input_dict, tag_values, start_date, end_date, weekly_plan, price, price * 0.5)
             if result and result <= target_days:
                 diff = abs(result - target_days)
                 if closest_diff is None or diff < closest_diff:
@@ -147,20 +176,12 @@ def suggest_parameter_adjustments(
 
         for extra_days in range(30, 181, 30):
             new_end = pd.to_datetime(start_date) + pd.Timedelta(days=current_days + extra_days)
-            new_times = generate_show_schedule(pd.to_datetime(start_date), new_end, weekly_plan)
-            if not new_times:
-                continue
-            df = base_df.copy()
-            df = df.iloc[:len(new_times)].copy().reset_index(drop=True)
-            new_times = new_times[:len(df)]
-            df["场次时间"] = new_times
-            df["周期"] = (new_end - pd.to_datetime(start_date)).days
-            result = simulate(df)
+            result = simulate(input_dict, tag_values, start_date, new_end, weekly_plan, max_price, min_price)
             if result and result <= target_days:
                 diff = abs(result - target_days)
                 if closest_diff is None or diff < closest_diff:
                     best_result = result
-                    best_days = df["周期"].iloc[0]
+                    best_days = (new_end - pd.to_datetime(start_date)).days
                     closest_diff = diff
 
         if best_result is not None:
@@ -175,9 +196,9 @@ def suggest_parameter_adjustments(
         for val in [0, 1]:
             if val == input_dict["是否常驻"]:
                 continue
-            df = base_df.copy().reset_index(drop=True)
-            df["是否常驻"] = val
-            result = simulate(df)
+            new_input = input_dict.copy()
+            new_input["是否常驻"] = val
+            result = simulate(new_input, tag_values, start_date, end_date, weekly_plan, max_price, min_price)
             if result and result <= target_days:
                 diff = abs(result - target_days)
                 if closest_diff is None or diff < closest_diff:
@@ -197,9 +218,9 @@ def suggest_parameter_adjustments(
         for val in [0, 1]:
             if val == input_dict["剧场规模"]:
                 continue
-            df = base_df.copy().reset_index(drop=True)
-            df["剧场规模"] = val
-            result = simulate(df)
+            new_input = input_dict.copy()
+            new_input["剧场规模"] = val
+            result = simulate(new_input, tag_values, start_date, end_date, weekly_plan, max_price, min_price)
             if result and result <= target_days:
                 diff = abs(result - target_days)
                 if closest_diff is None or diff < closest_diff:
@@ -219,9 +240,9 @@ def suggest_parameter_adjustments(
         for val in region_map.values():
             if val == input_dict["剧场区域"]:
                 continue
-            df = base_df.copy().reset_index(drop=True)
-            df["剧场区域"] = val
-            result = simulate(df)
+            new_input = input_dict.copy()
+            new_input["剧场区域"] = val
+            result = simulate(new_input, tag_values, start_date, end_date, weekly_plan, max_price, min_price)
             if result and result <= target_days:
                 diff = abs(result - target_days)
                 if closest_diff is None or diff < closest_diff:
@@ -241,9 +262,9 @@ def suggest_parameter_adjustments(
         for tag, val in tag_values.items():
             if val == 1:
                 continue
-            df = base_df.copy().reset_index(drop=True)
-            df[tag] = 1
-            result = simulate(df)
+            new_tags = tag_values.copy()
+            new_tags[tag] = 1
+            result = simulate(input_dict, new_tags, start_date, end_date, weekly_plan, max_price, min_price)
             if result and result <= target_days:
                 diff = abs(result - target_days)
                 if closest_diff is None or diff < closest_diff:
@@ -257,6 +278,7 @@ def suggest_parameter_adjustments(
 
     suggestions["❌ 无法优化"] = "在当前参数范围内无法实现目标投资者回本周期"
     return suggestions
+
 
 
 st.set_page_config(layout="wide")
