@@ -785,17 +785,19 @@ if uploaded_file:
                 selected_optimizable = st.multiselect("可优化参数（一次只能选一个）", options=optimizable_options, max_selections=1)
 
                 if st.button("📈 生成优化建议"):
-                    base_df = schedule_df.copy()
                     suggestions = suggest_parameter_adjustments(
-                        base_df, model, X.columns, one_time_cost, per_show_cost, monthly_admin,
+                        model, X.columns, one_time_cost, per_show_cost, monthly_admin,
                         investor_share_payback, investor_share_profit, venue_share, tax_rate, channel_share,
                         start_date, end_date, target_days,
                         input_dict=input_dict,
                         tag_values=tag_values,
                         selected_optimizable=selected_optimizable,
                         weekly_plan=weekly_plan,
-                        holiday_list=holiday_list
+                        holiday_list=holiday_list,
+                        max_price=max_price,
+                        min_price=min_price
                     )
+
                     if suggestions:
                         st.info("📌 以下是可供参考的参数优化建议，以实现目标回本周期：")
                         for k, v in suggestions.items():
