@@ -652,16 +652,17 @@ if uploaded_file:
 
         # 获取分成参数
         venue_share, tax_rate, channel_share, investor_share_payback, investor_share_profit = collect_distribution_inputs()
-    
-        # 🚀 开始预测
-        if st.button("开始预测"):
-            st.session_state.run_prediction = True
 
         # 模型维度选择
         st.markdown("### 🧠 特征关注模型选择")
         model_types = ["通用模型", "运营侧重模型", "内容侧重模型", "竞争侧重模型", "区域及排期侧重模型", "自定义模型"]
         selected_model_type = st.selectbox("选择特征关注模型", model_types)
+    
+        # 🚀 开始预测
+        if st.button("开始预测"):
+            st.session_state.run_prediction = True
 
+        
         # 初始化权重配置
         feature_weights_all = get_feature_weights(tag_values)
 
