@@ -541,7 +541,13 @@ if uploaded_file:
     st.success(f"模型 R² 分数：{score:.4f}")
     
     # 🔍 构建聚类模型并自动分配模型维度标签
-    feature_weights_template = get_feature_weights({tag: 1 for tag in X.columns if tag not in feature_cols})
+    # 正确提取题材标签列
+    tag_columns = [col for col in X.columns if col in [
+        "悬疑", "推理", "喜剧", "恐怖", "惊悚", "犯罪", "爱情", "历史", "传记",
+        "科幻", "奇幻", "玄幻", "灾难", "社会现实", "家庭伦理", "艺术文化", "战争", "职场", "其他"
+    ]]
+    feature_weights_template = get_feature_weights({tag: 1 for tag in tag_columns})
+
 
     # ✅ 清洗数据（去除 NaN 和 Inf）
     # 替换 Inf 为 NaN
