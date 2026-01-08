@@ -675,10 +675,6 @@ if uploaded_file:
         default_weights = feature_weights_all.get(selected_model_type, {})
         adjusted_weights = {}
 
-        # 统一设置题材标签权重
-        tag_columns = list(tag_values.keys())
-        tag_weight = st.slider("题材标签权重", min_value=0.0, max_value=3.0, step=0.1, value=1.0)
-        adjusted_weights.update({tag: tag_weight for tag in tag_columns})
 
         # === 📣 运营参数 ===
         with st.expander("📣 运营参数", expanded=True):
@@ -691,6 +687,11 @@ if uploaded_file:
 
         # === 🎭 内容参数 ===
         with st.expander("🎭 内容参数", expanded=True):
+            # 统一设置题材标签权重
+            tag_columns = list(tag_values.keys())
+            tag_weight = st.slider("题材标签权重", min_value=0.0, max_value=3.0, step=0.1, value=1.0)
+            adjusted_weights.update({tag: tag_weight for tag in tag_columns})
+
             for feature in ["演员阵容", "互动指数"]:
                 if feature in X.columns:
                     default = default_weights.get(feature, 1.0)
