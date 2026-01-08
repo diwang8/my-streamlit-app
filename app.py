@@ -686,7 +686,7 @@ if uploaded_file:
                 if feature in X.columns:
                     default = default_weights.get(feature, 1.0)
                     st.markdown(f"- {feature}")
-                    weight = st.slider(f"{feature}_slider", 0.0, 3.0, 0.1, value=default)
+                    weight = st.slider(f"{feature}_slider", min_value=0.0, max_value=3.0, step=0.1, value=default)
                     adjusted_weights[feature] = weight
 
         # === 🎭 内容参数 ===
@@ -695,7 +695,7 @@ if uploaded_file:
                 if feature in X.columns:
                     default = default_weights.get(feature, 1.0)
                     st.markdown(f"- {feature}")
-                    weight = st.slider(f"{feature}_slider", 0.0, 3.0, 0.1, value=default)
+                    weight = st.slider(f"{feature}_slider", min_value=0.0, max_value=3.0, step=0.1, value=default)
                     adjusted_weights[feature] = weight
 
         # === 🌐 外部参数 ===
@@ -704,7 +704,7 @@ if uploaded_file:
                 if feature in X.columns:
                     default = default_weights.get(feature, 1.0)
                     st.markdown(f"- {feature}")
-                    weight = st.slider(f"{feature}_slider", 0.0, 3.0, 0.1, value=default)
+                    weight = st.slider(f"{feature}_slider", min_value=0.0, max_value=3.0, step=0.1, value=default)
                     adjusted_weights[feature] = weight
 
         # === 🧩 其他参数 ===
@@ -713,7 +713,7 @@ if uploaded_file:
                 if feature in X.columns:
                     default = default_weights.get(feature, 1.0)
                     st.markdown(f"- {feature}")
-                    weight = st.slider(f"{feature}_slider", 0.0, 3.0, 0.1, value=default)
+                    weight = st.slider(f"{feature}_slider", min_value=0.0, max_value=3.0, step=0.1, value=default)
                     adjusted_weights[feature] = weight
 
 
