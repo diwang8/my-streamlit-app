@@ -482,14 +482,22 @@ if uploaded_file:
         }
     
     def auto_cluster_model_selector(X_raw, feature_weights_template, n_clusters=5):
+        # 替换 Inf -> NaN
+        X_raw = X_raw.replace([np.inf, -np.inf], np.nan)
+
+        # 丢弃 NaN
+        X_raw = X_raw.dropna()
+
+        # 标准化
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X_raw)
 
+        # 聚类
         kmeans = KMeans(n_clusters=n_clusters, random_state=42)
         cluster_labels = kmeans.fit_predict(X_scaled)
         centers = kmeans.cluster_centers_
 
-        # 为每个聚类中心匹配最接近的特征关注模型
+        # 自动匹配模型
         cluster_to_model = {}
         for i, center in enumerate(centers):
             scores = {}
@@ -500,11 +508,11 @@ if uploaded_file:
                         idx = X_raw.columns.get_loc(feature)
                         score += abs(center[idx] * weight)
                 scores[model_name] = score
-            # 选择得分最高的模型
             best_model = max(scores, key=scores.get)
             cluster_to_model[i] = best_model
 
         return kmeans, scaler, cluster_to_model
+
 
     # one-hot 编码（自动处理分类变量）
     X = pd.get_dummies(X_raw)
