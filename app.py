@@ -283,6 +283,21 @@ def suggest_parameter_adjustments(
 
 st.set_page_config(layout="wide")
 
+# 精准隐藏 slider 数值显示（仅隐藏数值，不影响滑动条）
+st.markdown("""
+    <style>
+    /* 隐藏 slider 当前值的 tooltip */
+    .stSlider div[data-baseweb="slider"] span {
+        display: none !important;
+    }
+    /* 隐藏 slider 左右两端的 min/max 标签（如果有） */
+    .stSlider div[data-baseweb="slider"] div[role="slider"]::before {
+        display: none !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
 st.title("🎭 剧目营收预测系统")
 
 def collect_cost_inputs():
