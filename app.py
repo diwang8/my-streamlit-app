@@ -286,12 +286,14 @@ st.set_page_config(layout="wide")
 # 精准隐藏 slider 数值显示（仅隐藏数值，不影响滑动条）
 st.markdown("""
     <style>
-    /* 隐藏 slider 当前值的 tooltip */
-    .stSlider div[data-baseweb="slider"] span {
+    /* 隐藏 slider 当前值（滑块上方的浮动数字） */
+    .stSlider [data-testid="stSlider"] > div > div > div:nth-child(2) {
         display: none !important;
     }
-    /* 隐藏 slider 左右两端的 min/max 标签（如果有） */
-    .stSlider div[data-baseweb="slider"] div[role="slider"]::before {
+
+    /* 隐藏 slider 左右两端的最小/最大值 */
+    .stSlider [data-testid="stSlider"] > div > div > div:first-child,
+    .stSlider [data-testid="stSlider"] > div > div > div:last-child {
         display: none !important;
     }
     </style>
