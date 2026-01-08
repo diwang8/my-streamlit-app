@@ -685,7 +685,8 @@ if uploaded_file:
         # 模型维度选择
         st.markdown("### 🧠 特征关注模型选择")
         model_types = ["通用模型", "运营侧重模型", "内容侧重模型", "竞争侧重模型", "区域及排期侧重模型"]
-        selected_model_type = st.selectbox("选择特征关注模型", model_types)
+        selected_model_type = st.selectbox("选择特征关注模型", model_types, index=model_types.index(auto_model_type))
+
 
     
         # 🚀 开始预测
@@ -760,6 +761,17 @@ if uploaded_file:
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
 
+        input_dict = {
+            "剧目类型": type_map[show_type],
+            "是否常驻": resident_map[is_resident],
+            "剧场规模": scale_map[scale],
+            "剧场区域": region_map[region],
+            "演员阵容": actor_count,
+            "互动指数": interaction_score,
+            "营销程度": marketing_level,
+            "竞争程度": competition_level
+        }
+
         # 自动推荐模型类型
         auto_model_type, auto_reasons = suggest_model_type(
             input_dict=input_dict,
@@ -775,16 +787,6 @@ if uploaded_file:
 
 
         if st.session_state.run_prediction:
-            input_dict = {
-                "剧目类型": type_map[show_type],
-                "是否常驻": resident_map[is_resident],
-                "剧场规模": scale_map[scale],
-                "剧场区域": region_map[region],
-                "演员阵容": actor_count,
-                "互动指数": interaction_score,
-                "营销程度": marketing_level,
-                "竞争程度": competition_level
-            }
 
     
             schedule_df = pd.DataFrame({
