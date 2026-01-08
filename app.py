@@ -290,7 +290,7 @@ def collect_cost_inputs():
     st.markdown("### 一次性投入成本")
 
     # 🎬 创作类成本
-    with st.expander("🎬 创作类成本", expanded=True):
+    with st.expander("🎬 创作类成本", expanded=False):
         col1, col2 = st.columns(2)
         with col1:
             cost_copyright = st.number_input("版权使用费", value=0)
@@ -364,55 +364,55 @@ def collect_cost_inputs():
     ])
 
     # 🎟️ 持续性投入成本
-    st.markdown("### 持续性投入成本（单位：元/场）")
-    col4, col5, col6 = st.columns(3)
-    with col4:
-        cost_actor = st.number_input("演员", value=6000)
-        cost_makeup = st.number_input("服化", value=700)
-        cost_audio_op = st.number_input("音控", value=500)
-    with col5:
-        cost_light_op = st.number_input("灯", value=500)
-        cost_stage_mgr = st.number_input("舞监", value=500)
-        cost_manager = st.number_input("剧场经理", value=400)
-    with col6:
-        cost_parttime = st.number_input("兼职", value=500)
-        cost_props = st.number_input("消耗型道具", value=800)
-        cost_cleaning = st.number_input("保洁", value=214.29)
+    with st.expander("🎟️ 持续性投入成本（单位：元/场）", expanded=False):
+        col4, col5, col6 = st.columns(3)
+        with col4:
+            cost_actor = st.number_input("演员", value=6000)
+            cost_makeup = st.number_input("服化", value=700)
+            cost_audio_op = st.number_input("音控", value=500)
+        with col5:
+            cost_light_op = st.number_input("灯", value=500)
+            cost_stage_mgr = st.number_input("舞监", value=500)
+            cost_manager = st.number_input("剧场经理", value=400)
+        with col6:
+            cost_parttime = st.number_input("兼职", value=500)
+            cost_props = st.number_input("消耗型道具", value=800)
+            cost_cleaning = st.number_input("保洁", value=214.29)
 
-    per_show_cost = sum([
-        cost_actor, cost_makeup, cost_audio_op, cost_light_op,
-        cost_stage_mgr, cost_manager, cost_parttime, cost_props, cost_cleaning
-    ])
+        per_show_cost = sum([
+            cost_actor, cost_makeup, cost_audio_op, cost_light_op,
+            cost_stage_mgr, cost_manager, cost_parttime, cost_props, cost_cleaning
+        ])
 
     # 🧾 管理费用
-    st.markdown("### 管理费用（按月）")
-    col_admin1, col_admin2 = st.columns(2)
-    with col_admin1:
-        monthly_admin_fixed = st.number_input("管理费用（固定）", value=120000)
-    with col_admin2:
-        monthly_property = st.number_input("物业费用", value=0)
+    with st.expander("🧾 管理费用（按月）", expanded=False):
+        col_admin1, col_admin2 = st.columns(2)
+        with col_admin1:
+            monthly_admin_fixed = st.number_input("管理费用（固定）", value=120000)
+        with col_admin2:
+            monthly_property = st.number_input("物业费用", value=0)
 
-    monthly_admin = monthly_admin_fixed + monthly_property
+        monthly_admin = monthly_admin_fixed + monthly_property
 
-    return one_time_cost, per_show_cost, monthly_admin
+        return one_time_cost, per_show_cost, monthly_admin
 
 
     
 def collect_distribution_inputs():
-    st.markdown("### 📊 收入分成参数设置")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        venue_share = st.number_input("场地分成（%）", value=5.0) / 100
-    with col2:
-        tax_rate = st.number_input("税点（%）", value=3.0) / 100
-    with col3:
-        channel_share = st.number_input("票房渠道分成（%）", value=14.0) / 100
+    with st.expander("📊 收入分成参数设置", expanded=False):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            venue_share = st.number_input("场地分成（%）", value=5.0) / 100
+        with col2:
+            tax_rate = st.number_input("税点（%）", value=3.0) / 100
+        with col3:
+            channel_share = st.number_input("票房渠道分成（%）", value=14.0) / 100
 
-    col4, col5 = st.columns(2)
-    with col4:
-        investor_share_payback = st.number_input("投资者分成占比（回本期 %）", value=50.0) / 100
-    with col5:
-        investor_share_profit = st.number_input("投资者分成占比（收益期 %）", value=20.0) / 100
+        col4, col5 = st.columns(2)
+        with col4:
+            investor_share_payback = st.number_input("投资者分成占比（回本期 %）", value=50.0) / 100
+        with col5:
+            investor_share_profit = st.number_input("投资者分成占比（收益期 %）", value=20.0) / 100
 
     return venue_share, tax_rate, channel_share, investor_share_payback, investor_share_profit
 
