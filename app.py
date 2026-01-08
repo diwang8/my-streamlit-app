@@ -477,6 +477,34 @@ if uploaded_file:
                 "周期": 1.3, "是否常驻": 1.2, "剧场规模": 1.2
             }
         }
+    
+    def suggest_model_type(input_dict, tag_values, marketing_level, competition_level):
+        reasons = []
+        tag_score = sum(tag_values.values())
+        actor_score = input_dict.get("演员阵容", 0)
+        interaction_score = input_dict.get("互动指数", 0)
+        duration = input_dict.get("周期", 30)
+        resident = input_dict.get("是否常驻", 0)
+        scale = input_dict.get("剧场规模", 0)
+        region = input_dict.get("剧场区域", 0)
+
+        # 评分逻辑
+        if marketing_level >= 5000:
+            reasons.append("营销程度较高，适合运营侧重模型")
+            return "运营侧重模型", reasons
+        elif actor_score >= 3 or tag_score >= 3 or interaction_score >= 3:
+            reasons.append("演员阵容强或题材丰富，适合内容侧重模型")
+            return "内容侧重模型", reasons
+        elif competition_level >= 3:
+            reasons.append("竞争程度较高，适合竞争侧重模型")
+            return "竞争侧重模型", reasons
+        elif duration >= 60 or resident == 1 or scale == 1:
+            reasons.append("周期较长或常驻/大剧场，适合区域及排期侧重模型")
+            return "区域及排期侧重模型", reasons
+        else:
+            reasons.append("参数特征较均衡，适合通用模型")
+            return "通用模型", reasons
+
 
 
 
@@ -732,6 +760,18 @@ if uploaded_file:
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
 
+        # 自动推荐模型类型
+        auto_model_type, auto_reasons = suggest_model_type(
+            input_dict=input_dict,
+            tag_values=tag_values,
+            marketing_level=marketing_level,
+            competition_level=competition_level
+        )
+
+        st.markdown("### 🤖 推荐模型类型")
+        st.success(f"系统推荐使用模型：**{auto_model_type}**")
+        for reason in auto_reasons:
+            st.markdown(f"- {reason}")
 
 
         if st.session_state.run_prediction:
