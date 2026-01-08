@@ -705,6 +705,10 @@ if uploaded_file:
         st.markdown("### 🧠 特征关注模型选择")
         model_types = ["通用模型", "运营侧重模型", "内容侧重模型", "竞争侧重模型", "区域及排期侧重模型"]
         selected_model_type = st.selectbox("选择特征关注模型", model_types, index=model_types.index(auto_model_type))
+        st.markdown("### 🤖 推荐模型类型")
+        st.success(f"系统推荐使用模型：**{auto_model_type}**")
+        for reason in auto_reasons:
+            st.markdown(f"- {reason}")
 
 
     
@@ -780,12 +784,6 @@ if uploaded_file:
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
 
-        
-
-        st.markdown("### 🤖 推荐模型类型")
-        st.success(f"系统推荐使用模型：**{auto_model_type}**")
-        for reason in auto_reasons:
-            st.markdown(f"- {reason}")
 
 
         if st.session_state.run_prediction:
