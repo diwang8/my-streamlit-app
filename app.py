@@ -546,6 +546,12 @@ if uploaded_file:
     X_clean.replace([np.inf, -np.inf], np.nan, inplace=True)
     X_clean.dropna(inplace=True)
 
+    st.write("🔍 X_clean shape:", X_clean.shape)
+    st.write("🔍 是否包含 NaN：", X_clean.isnull().values.any())
+    st.write("🔍 NaN 总数：", X_clean.isnull().sum().sum())
+    st.write("🔍 是否包含 Inf：", np.isinf(X_clean.to_numpy()).any())
+
+
     kmeans_model, scaler_model, cluster_to_model_map = auto_cluster_model_selector(X_clean, feature_weights_template)
 
 
