@@ -536,10 +536,14 @@ if uploaded_file:
     y_pred = model.predict(X_test)
     score = r2_score(y_test, y_pred)
     st.success(f"模型 R² 分数：{score:.4f}")
-
+    
     # 🔍 构建聚类模型并自动分配模型维度标签
     feature_weights_template = get_feature_weights({tag: 1 for tag in X.columns if tag not in feature_cols})
-    kmeans_model, scaler_model, cluster_to_model_map = auto_cluster_model_selector(X, feature_weights_template)
+
+    # ✅ 清洗数据（去除 NaN 和 Inf）
+    X_clean = X.replace([np.inf, -np.inf], np.nan).dropna()
+
+    kmeans_model, scaler_model, cluster_to_model_map = auto_cluster_model_selector(X_clean, feature_weights_template)
 
 
     st.markdown("---")
