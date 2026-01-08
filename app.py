@@ -481,37 +481,30 @@ if uploaded_file:
             }
         }
     
-    def auto_cluster_model_selector(X_raw, feature_weights_template, n_clusters=5):
-        # 替换 Inf -> NaN
-        X_raw = X_raw.replace([np.inf, -np.inf], np.nan)
-
-        # 丢弃 NaN
-        X_raw = X_raw.dropna()
-
-        # 标准化
+    def auto_cluster_model_selector(X_cleaned, feature_weights_template, n_clusters=5):
+    # 不再清洗，直接使用
         scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X_raw)
+        X_scaled = scaler.fit_transform(X_cleaned)
 
-        # 聚类
         kmeans = KMeans(n_clusters=n_clusters, random_state=42)
         cluster_labels = kmeans.fit_predict(X_scaled)
         centers = kmeans.cluster_centers_
 
-        # 自动匹配模型
         cluster_to_model = {}
         for i, center in enumerate(centers):
             scores = {}
             for model_name, weights in feature_weights_template.items():
                 score = 0
                 for feature, weight in weights.items():
-                    if feature in X_raw.columns:
-                        idx = X_raw.columns.get_loc(feature)
+                    if feature in X_cleaned.columns:
+                        idx = X_cleaned.columns.get_loc(feature)
                         score += abs(center[idx] * weight)
                 scores[model_name] = score
             best_model = max(scores, key=scores.get)
             cluster_to_model[i] = best_model
 
         return kmeans, scaler, cluster_to_model
+
 
 
     # one-hot 编码（自动处理分类变量）
@@ -549,7 +542,9 @@ if uploaded_file:
     feature_weights_template = get_feature_weights({tag: 1 for tag in X.columns if tag not in feature_cols})
 
     # ✅ 清洗数据（去除 NaN 和 Inf）
-    X_clean = X.replace([np.inf, -np.inf], np.nan).dropna()
+    X_clean = X.copy()
+    X_clean.replace([np.inf, -np.inf], np.nan, inplace=True)
+    X_clean.dropna(inplace=True)
 
     kmeans_model, scaler_model, cluster_to_model_map = auto_cluster_model_selector(X_clean, feature_weights_template)
 
