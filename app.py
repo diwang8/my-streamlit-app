@@ -282,23 +282,6 @@ def suggest_parameter_adjustments(
 
 
 st.set_page_config(layout="wide")
-# 隐藏 slider 的数值显示（左侧最小值、右侧最大值、当前值）
-hide_slider_numbers_css = """
-<style>
-    /* 隐藏 slider 当前值 */
-    .stSlider > div[data-baseweb="slider"] > div > div:nth-child(2) {
-        display: none;
-    }
-    /* 隐藏 slider 左右两端的数值标签 */
-    .stSlider > div[data-baseweb="slider"] > div > div:first-child {
-        display: none;
-    }
-    .stSlider > div[data-baseweb="slider"] > div > div:last-child {
-        display: none;
-    }
-</style>
-"""
-st.markdown(hide_slider_numbers_css, unsafe_allow_html=True)
 
 st.title("🎭 剧目营收预测系统")
 
