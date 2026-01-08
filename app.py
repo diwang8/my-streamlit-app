@@ -687,17 +687,20 @@ if uploaded_file:
 
         # === 🎭 内容参数 ===
         with st.expander("🎭 内容参数", expanded=True):
-            # 统一设置题材标签权重
+            # 题材标签权重
+            st.markdown("- 题材标签")
             tag_columns = list(tag_values.keys())
-            tag_weight = st.slider("题材标签权重", min_value=0.0, max_value=3.0, step=0.1, value=1.0)
+            tag_weight = st.slider("题材标签", min_value=0.0, max_value=3.0, step=0.1, value=1.0)
             adjusted_weights.update({tag: tag_weight for tag in tag_columns})
 
+            # 其他内容参数
             for feature in ["演员阵容", "互动指数"]:
                 if feature in X.columns:
                     default = default_weights.get(feature, 1.0)
                     st.markdown(f"- {feature}")
-                    weight = st.slider(f"{feature}_slider", min_value=0.0, max_value=3.0, step=0.1, value=default)
+                    weight = st.slider(feature, min_value=0.0, max_value=3.0, step=0.1, value=default)
                     adjusted_weights[feature] = weight
+
 
         # === 🌐 外部参数 ===
         with st.expander("🌐 外部参数", expanded=True):
