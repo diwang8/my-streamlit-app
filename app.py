@@ -678,17 +678,18 @@ if uploaded_file:
         adjusted_weights = {}
 
         for col in X.columns:
+            # 获取默认权重（无则为 1.0）
             default = default_weights.get(col, 1.0)
+            
             st.markdown(f"- {col}")
-            weight = st.select_slider(
+            weight = st.slider(
                 label=f"{col}_slider",
-                options=[round(i * 0.1, 1) for i in range(0, 31)],
-                value=round(default, 1),
-                label_visibility="collapsed"
+                min_value=0.0,
+                max_value=3.0,
+                step=0.1,
+                value=default
             )
             adjusted_weights[col] = weight
-
-
 
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
