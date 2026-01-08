@@ -482,12 +482,14 @@ if uploaded_file:
         }
     
     def auto_cluster_model_selector(X_cleaned, feature_weights_template, n_clusters=5):
-    # 不再清洗，直接使用
+        """
+        对历史样本聚类，并根据每个聚类中心与各模型维度关注特征的匹配度，自动分配模型维度标签。
+        """
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X_cleaned)
 
         kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-        cluster_labels = kmeans.fit_predict(X_scaled)
+        kmeans.fit(X_scaled)
         centers = kmeans.cluster_centers_
 
         cluster_to_model = {}
@@ -498,7 +500,7 @@ if uploaded_file:
                 for feature, weight in weights.items():
                     if feature in X_cleaned.columns:
                         idx = X_cleaned.columns.get_loc(feature)
-                        score += abs(center[idx] * weight)
+                        score += abs(center[idx]) * weight
                 scores[model_name] = score
             best_model = max(scores, key=scores.get)
             cluster_to_model[i] = best_model
