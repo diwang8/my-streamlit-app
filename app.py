@@ -283,23 +283,6 @@ def suggest_parameter_adjustments(
 
 st.set_page_config(layout="wide")
 
-# 精准隐藏 slider 数值显示（仅隐藏数值，不影响滑动条）
-st.markdown("""
-    <style>
-    /* 隐藏 slider 当前值（滑块上方的浮动数字） */
-    .stSlider [data-testid="stSlider"] > div > div > div:nth-child(2) {
-        display: none !important;
-    }
-
-    /* 隐藏 slider 左右两端的最小/最大值 */
-    .stSlider [data-testid="stSlider"] > div > div > div:first-child,
-    .stSlider [data-testid="stSlider"] > div > div > div:last-child {
-        display: none !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-
 st.title("🎭 剧目营收预测系统")
 
 def collect_cost_inputs():
@@ -698,15 +681,13 @@ if uploaded_file:
             # 获取默认权重（无则为 1.0）
             default = default_weights.get(col, 1.0)
             
-            # 使用 slider 但不显示当前值（通过 label_visibility="collapsed" 实现）
             st.markdown(f"- {col}")
             weight = st.slider(
                 label=f"{col}_slider",
                 min_value=0.0,
                 max_value=3.0,
                 step=0.1,
-                value=default,
-                label_visibility="collapsed"
+                value=default
             )
             adjusted_weights[col] = weight
 
