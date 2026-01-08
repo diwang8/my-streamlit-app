@@ -678,19 +678,25 @@ if uploaded_file:
         default_weights = feature_weights_all.get(selected_model_type, {})
         adjusted_weights = {}
 
+        # 统一设置题材标签权重
+        tag_columns = list(tag_values.keys())
+        tag_weight = st.slider("题材标签权重", min_value=0.0, max_value=3.0, step=0.1, value=1.0)
+
         for col in X.columns:
-            # 获取默认权重（无则为 1.0）
-            default = default_weights.get(col, 1.0)
-            
-            st.markdown(f"- {col}")
-            weight = st.slider(
-                label=f"{col}_slider",
-                min_value=0.0,
-                max_value=3.0,
-                step=0.1,
-                value=default
-            )
-            adjusted_weights[col] = weight
+            if col in tag_columns:
+                adjusted_weights[col] = tag_weight
+            else:
+                default = default_weights.get(col, 1.0)
+                st.markdown(f"- {col}")
+                weight = st.slider(
+                    label=f"{col}_slider",
+                    min_value=0.0,
+                    max_value=3.0,
+                    step=0.1,
+                    value=default
+                )
+                adjusted_weights[col] = weight
+
 
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
