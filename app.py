@@ -542,17 +542,15 @@ if uploaded_file:
     feature_weights_template = get_feature_weights({tag: 1 for tag in X.columns if tag not in feature_cols})
 
     # ✅ 清洗数据（去除 NaN 和 Inf）
-    X_clean = X.copy()
-    X_clean.replace([np.inf, -np.inf], np.nan, inplace=True)
-    X_clean.dropna(inplace=True)
+    # 替换 Inf 为 NaN
+    X_train_clean = X_train.copy()
+    X_train_clean.replace([np.inf, -np.inf], np.nan, inplace=True)
 
-    st.write("🔍 X_clean shape:", X_clean.shape)
-    st.write("🔍 是否包含 NaN：", X_clean.isnull().values.any())
-    st.write("🔍 NaN 总数：", X_clean.isnull().sum().sum())
-    st.write("🔍 是否包含 Inf：", np.isinf(X_clean.to_numpy()).any())
+    # 填充 NaN（例如用 0 或均值）
+    X_train_clean.fillna(0, inplace=True)
 
-
-    kmeans_model, scaler_model, cluster_to_model_map = auto_cluster_model_selector(X_clean, feature_weights_template)
+    # 用于聚类
+    kmeans_model, scaler_model, cluster_to_model_map = auto_cluster_model_selector(X_train_clean, feature_weights_template)
 
 
     st.markdown("---")
