@@ -455,6 +455,30 @@ if uploaded_file:
     X_raw = df[feature_cols].copy()
     y_raw = df["营业收入"]
 
+    # 定义特征权重矩阵
+    def get_feature_weights(tag_values):
+        tag_cols = list(tag_values.keys())
+        return {
+            "通用模型": {},
+            "运营侧重模型": {
+                "最高价格": 1.5, "最低价格": 1.3, "营销程度": 1.5,
+                "周期": 1.2, "是否常驻": 1.2, "剧场规模": 1.2
+            },
+            "内容侧重模型": {
+                "主演号召力": 1.5, "互动指数": 1.5, "营销程度": 1.2,
+                **{tag: 1.8 for tag in tag_cols}
+            },
+            "竞争侧重模型": {
+                "是否节假日": 1.5, "竞争程度": 1.5
+            },
+            "区域及排期侧重模型": {
+                "剧场区域": 1.5, "剧目类型": 1.3,
+                "周期": 1.3, "是否常驻": 1.2, "剧场规模": 1.2
+            },
+            "自定义模型": {}  # 用户可手动配置
+        }
+
+
     # one-hot 编码（自动处理分类变量）
     X = pd.get_dummies(X_raw)
 
@@ -633,6 +657,24 @@ if uploaded_file:
         if st.button("开始预测"):
             st.session_state.run_prediction = True
 
+        # 模型维度选择
+        st.markdown("### 🧠 特征关注模型选择")
+        model_types = ["通用模型", "运营侧重模型", "内容侧重模型", "竞争侧重模型", "区域及排期侧重模型", "自定义模型"]
+        selected_model_type = st.selectbox("选择特征关注模型", model_types)
+
+        # 初始化权重配置
+        feature_weights_all = get_feature_weights(tag_values)
+
+        # 如果是自定义模型，提供滑块调整
+        if selected_model_type == "自定义模型":
+            st.markdown("🎛 自定义特征权重（范围 0.0 - 3.0）")
+            custom_weights = {}
+            for col in X.columns:
+                weight = st.slider(f"{col}", min_value=0.0, max_value=3.0, step=0.1, value=1.0)
+                custom_weights[col] = weight
+            feature_weights_all["自定义模型"] = custom_weights
+
+
         if st.session_state.run_prediction:
             input_dict = {
                 "剧目类型": type_map[show_type],
@@ -665,6 +707,16 @@ if uploaded_file:
     
             # one-hot 编码
             X_new = pd.get_dummies(schedule_df.drop(columns=["场次时间"]))
+            def apply_feature_weights(X, weight_dict):
+                X_weighted = X.copy()
+                for feature, weight in weight_dict.items():
+                    if feature in X_weighted.columns:
+                        X_weighted[feature] *= weight
+                return X_weighted
+
+            # 应用权重
+            X_new = apply_feature_weights(X_new, feature_weights_all[selected_model_type])
+
             X_new = X_new.reindex(columns=X.columns, fill_value=0)
     
             # 模型预测
@@ -713,6 +765,7 @@ if uploaded_file:
                 schedule_df["累计投资者收益"] = schedule_df["投资者收益"].cumsum()
                 schedule_df["累计运营者收益"] = schedule_df["运营者收益"].cumsum()
 
+                st.info(f"📌 当前使用的特征关注模型：**{selected_model_type}**")
 
                 # 图 1：每场预测营收（条形图）
                 st.subheader("📊 每场预测营收（条形图）")
