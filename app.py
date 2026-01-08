@@ -5,9 +5,6 @@ import matplotlib.pyplot as plt
 import matplotlib
 import matplotlib.font_manager as fm
 import os
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
-
 
 font_path = "NotoSansSC-VariableFont_wght.ttf"
 if os.path.exists(font_path):
@@ -480,32 +477,6 @@ if uploaded_file:
                 "周期": 1.3, "是否常驻": 1.2, "剧场规模": 1.2
             }
         }
-    
-    def auto_cluster_model_selector(X_cleaned, feature_weights_template, n_clusters=5):
-        """
-        对历史样本聚类，并根据每个聚类中心与各模型维度关注特征的匹配度，自动分配模型维度标签。
-        """
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X_cleaned)
-
-        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-        kmeans.fit(X_scaled)
-        centers = kmeans.cluster_centers_
-
-        cluster_to_model = {}
-        for i, center in enumerate(centers):
-            scores = {}
-            for model_name, weights in feature_weights_template.items():
-                score = 0
-                for feature, weight in weights.items():
-                    if feature in X_cleaned.columns:
-                        idx = X_cleaned.columns.get_loc(feature)
-                        score += abs(center[idx]) * weight
-                scores[model_name] = score
-            best_model = max(scores, key=scores.get)
-            cluster_to_model[i] = best_model
-
-        return kmeans, scaler, cluster_to_model
 
 
 
@@ -539,27 +510,6 @@ if uploaded_file:
     y_pred = model.predict(X_test)
     score = r2_score(y_test, y_pred)
     st.success(f"模型 R² 分数：{score:.4f}")
-    
-    # 🔍 构建聚类模型并自动分配模型维度标签
-    # 正确提取题材标签列
-    tag_columns = [col for col in X.columns if col in [
-        "悬疑", "推理", "喜剧", "恐怖", "惊悚", "犯罪", "爱情", "历史", "传记",
-        "科幻", "奇幻", "玄幻", "灾难", "社会现实", "家庭伦理", "艺术文化", "战争", "职场", "其他"
-    ]]
-    feature_weights_template = get_feature_weights({tag: 1 for tag in tag_columns})
-
-
-    # ✅ 清洗数据（去除 NaN 和 Inf）
-    # 替换 Inf 为 NaN
-    X_train_clean = X_train.copy()
-    X_train_clean.replace([np.inf, -np.inf], np.nan, inplace=True)
-
-    # 填充 NaN（例如用 0 或均值）
-    X_train_clean.fillna(0, inplace=True)
-
-    # 用于聚类
-    kmeans_model, scaler_model, cluster_to_model_map = auto_cluster_model_selector(X_train_clean, feature_weights_template)
-
 
     st.markdown("---")
     st.subheader("🎯 选择已有剧目进行预测")
@@ -704,40 +654,10 @@ if uploaded_file:
         # 获取分成参数
         venue_share, tax_rate, channel_share, investor_share_payback, investor_share_profit = collect_distribution_inputs()
 
-        new_feature_vector = {
-            "剧目类型": type_map[show_type],
-            "是否常驻": resident_map[is_resident],
-            "剧场规模": scale_map[scale],
-            "剧场区域": region_map[region],
-            "演员阵容": actor_count,
-            "互动指数": interaction_score,
-            "营销程度": marketing_level,
-            "竞争程度": competition_level,
-            "最高价格": max_price,
-            "最低价格": min_price,
-            "周期": (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
-        }
-        new_feature_vector.update(tag_values)
-        new_df = pd.DataFrame([new_feature_vector])
-        new_df = pd.get_dummies(new_df)
-        new_df = new_df.reindex(columns=X.columns, fill_value=0)
-        new_scaled = scaler_model.transform(new_df)
-
-        cluster_id = kmeans_model.predict(new_scaled)[0]
-        auto_model_type = cluster_to_model_map[cluster_id]
-
         # 模型维度选择
         st.markdown("### 🧠 特征关注模型选择")
         model_types = ["通用模型", "运营侧重模型", "内容侧重模型", "竞争侧重模型", "区域及排期侧重模型"]
-        st.markdown("### 🤖 推荐模型维度（基于聚类）")
-        st.success(f"系统推荐使用模型：**{auto_model_type}**（聚类编号：{cluster_id}）")
-
-        selected_model_type = st.selectbox(
-            "选择特征关注模型",
-            model_types,
-            index=model_types.index(auto_model_type)
-        )
-
+        selected_model_type = st.selectbox("选择特征关注模型", model_types)
 
     
         # 🚀 开始预测
@@ -809,15 +729,9 @@ if uploaded_file:
 
 
 
-
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
 
-        # 构造新剧特征向量用于聚类
-        
-
-        st.markdown("### 🤖 推荐模型维度（基于聚类）")
-        st.success(f"系统推荐使用模型：**{auto_model_type}**（聚类编号：{cluster_id}）")
 
 
         if st.session_state.run_prediction:
