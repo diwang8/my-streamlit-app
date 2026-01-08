@@ -682,6 +682,25 @@ if uploaded_file:
         # 获取分成参数
         venue_share, tax_rate, channel_share, investor_share_payback, investor_share_profit = collect_distribution_inputs()
 
+        input_dict = {
+            "剧目类型": type_map[show_type],
+            "是否常驻": resident_map[is_resident],
+            "剧场规模": scale_map[scale],
+            "剧场区域": region_map[region],
+            "演员阵容": actor_count,
+            "互动指数": interaction_score,
+            "营销程度": marketing_level,
+            "竞争程度": competition_level
+        }
+
+        # 自动推荐模型类型
+        auto_model_type, auto_reasons = suggest_model_type(
+            input_dict=input_dict,
+            tag_values=tag_values,
+            marketing_level=marketing_level,
+            competition_level=competition_level
+        )
+
         # 模型维度选择
         st.markdown("### 🧠 特征关注模型选择")
         model_types = ["通用模型", "运营侧重模型", "内容侧重模型", "竞争侧重模型", "区域及排期侧重模型"]
@@ -761,24 +780,7 @@ if uploaded_file:
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
 
-        input_dict = {
-            "剧目类型": type_map[show_type],
-            "是否常驻": resident_map[is_resident],
-            "剧场规模": scale_map[scale],
-            "剧场区域": region_map[region],
-            "演员阵容": actor_count,
-            "互动指数": interaction_score,
-            "营销程度": marketing_level,
-            "竞争程度": competition_level
-        }
-
-        # 自动推荐模型类型
-        auto_model_type, auto_reasons = suggest_model_type(
-            input_dict=input_dict,
-            tag_values=tag_values,
-            marketing_level=marketing_level,
-            competition_level=competition_level
-        )
+        
 
         st.markdown("### 🤖 推荐模型类型")
         st.success(f"系统推荐使用模型：**{auto_model_type}**")
