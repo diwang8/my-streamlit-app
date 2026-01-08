@@ -721,7 +721,15 @@ if uploaded_file:
         # 模型维度选择
         st.markdown("### 🧠 特征关注模型选择")
         model_types = ["通用模型", "运营侧重模型", "内容侧重模型", "竞争侧重模型", "区域及排期侧重模型"]
-        selected_model_type = st.selectbox("选择特征关注模型", model_types, index=model_types.index(auto_model_type))
+        st.markdown("### 🤖 推荐模型维度（基于聚类）")
+        st.success(f"系统推荐使用模型：**{auto_model_type}**（聚类编号：{cluster_id}）")
+
+        selected_model_type = st.selectbox(
+            "选择特征关注模型",
+            model_types,
+            index=model_types.index(auto_model_type)
+        )
+
 
     
         # 🚀 开始预测
