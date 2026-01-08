@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import matplotlib
 import matplotlib.font_manager as fm
 import os
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+
 
 font_path = "NotoSansSC-VariableFont_wght.ttf"
 if os.path.exists(font_path):
@@ -477,8 +480,31 @@ if uploaded_file:
                 "周期": 1.3, "是否常驻": 1.2, "剧场规模": 1.2
             }
         }
+    
+    def auto_cluster_model_selector(X_raw, feature_weights_template, n_clusters=5):
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X_raw)
 
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        cluster_labels = kmeans.fit_predict(X_scaled)
+        centers = kmeans.cluster_centers_
 
+        # 为每个聚类中心匹配最接近的特征关注模型
+        cluster_to_model = {}
+        for i, center in enumerate(centers):
+            scores = {}
+            for model_name, weights in feature_weights_template.items():
+                score = 0
+                for feature, weight in weights.items():
+                    if feature in X_raw.columns:
+                        idx = X_raw.columns.get_loc(feature)
+                        score += abs(center[idx] * weight)
+                scores[model_name] = score
+            # 选择得分最高的模型
+            best_model = max(scores, key=scores.get)
+            cluster_to_model[i] = best_model
+
+        return kmeans, scaler, cluster_to_model
 
     # one-hot 编码（自动处理分类变量）
     X = pd.get_dummies(X_raw)
@@ -510,6 +536,11 @@ if uploaded_file:
     y_pred = model.predict(X_test)
     score = r2_score(y_test, y_pred)
     st.success(f"模型 R² 分数：{score:.4f}")
+
+    # 🔍 构建聚类模型并自动分配模型维度标签
+    feature_weights_template = get_feature_weights({tag: 1 for tag in X.columns if tag not in feature_cols})
+    kmeans_model, scaler_model, cluster_to_model_map = auto_cluster_model_selector(X, feature_weights_template)
+
 
     st.markdown("---")
     st.subheader("🎯 选择已有剧目进行预测")
@@ -657,7 +688,7 @@ if uploaded_file:
         # 模型维度选择
         st.markdown("### 🧠 特征关注模型选择")
         model_types = ["通用模型", "运营侧重模型", "内容侧重模型", "竞争侧重模型", "区域及排期侧重模型"]
-        selected_model_type = st.selectbox("选择特征关注模型", model_types)
+        selected_model_type = st.selectbox("选择特征关注模型", model_types, index=model_types.index(auto_model_type))
 
     
         # 🚀 开始预测
@@ -731,6 +762,32 @@ if uploaded_file:
 
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
+
+        # 构造新剧特征向量用于聚类
+        new_feature_vector = {
+            "剧目类型": type_map[show_type],
+            "是否常驻": resident_map[is_resident],
+            "剧场规模": scale_map[scale],
+            "剧场区域": region_map[region],
+            "演员阵容": actor_count,
+            "互动指数": interaction_score,
+            "营销程度": marketing_level,
+            "竞争程度": competition_level,
+            "最高价格": max_price,
+            "最低价格": min_price,
+            "周期": (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
+        }
+        new_feature_vector.update(tag_values)
+        new_df = pd.DataFrame([new_feature_vector])
+        new_df = pd.get_dummies(new_df)
+        new_df = new_df.reindex(columns=X.columns, fill_value=0)
+        new_scaled = scaler_model.transform(new_df)
+
+        cluster_id = kmeans_model.predict(new_scaled)[0]
+        auto_model_type = cluster_to_model_map[cluster_id]
+
+        st.markdown("### 🤖 推荐模型维度（基于聚类）")
+        st.success(f"系统推荐使用模型：**{auto_model_type}**（聚类编号：{cluster_id}）")
 
 
 
