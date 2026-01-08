@@ -602,7 +602,7 @@ if uploaded_file:
                 st.stop()
 
         # === 🗓 每周排期 ===
-        with st.expander("🗓 每周排期设置", expanded=True):
+        with st.expander("🗓 每周排期设置", expanded=False):
             weekday_map = {0: "周一", 1: "周二", 2: "周三", 3: "周四", 4: "周五", 5: "周六", 6: "周日"}
             time_options = ["不演", "14:30", "19:30", "14:30 和 19:30"]
             weekly_plan = {}
