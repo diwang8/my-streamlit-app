@@ -669,33 +669,54 @@ if uploaded_file:
         feature_weights_all = get_feature_weights(tag_values)
 
         # 显示特征权重滑块（不显示具体数值）
+        # 🎛 特征权重调整（分组 + 统一题材标签滑块）
         st.markdown("🎛 特征权重调整")
 
-        # 初始化权重配置
-        feature_weights_all = get_feature_weights(tag_values)
-
-        # 获取当前模型类型的默认权重
+        # 获取默认权重
         default_weights = feature_weights_all.get(selected_model_type, {})
         adjusted_weights = {}
 
         # 统一设置题材标签权重
         tag_columns = list(tag_values.keys())
         tag_weight = st.slider("题材标签权重", min_value=0.0, max_value=3.0, step=0.1, value=1.0)
+        adjusted_weights.update({tag: tag_weight for tag in tag_columns})
 
-        for col in X.columns:
-            if col in tag_columns:
-                adjusted_weights[col] = tag_weight
-            else:
-                default = default_weights.get(col, 1.0)
-                st.markdown(f"- {col}")
-                weight = st.slider(
-                    label=f"{col}_slider",
-                    min_value=0.0,
-                    max_value=3.0,
-                    step=0.1,
-                    value=default
-                )
-                adjusted_weights[col] = weight
+        # === 📣 运营参数 ===
+        with st.expander("📣 运营参数", expanded=True):
+            for feature in ["最高价格", "最低价格", "营销程度", "演员阵容"]:
+                if feature in X.columns:
+                    default = default_weights.get(feature, 1.0)
+                    st.markdown(f"- {feature}")
+                    weight = st.slider(f"{feature}_slider", 0.0, 3.0, 0.1, value=default)
+                    adjusted_weights[feature] = weight
+
+        # === 🎭 内容参数 ===
+        with st.expander("🎭 内容参数", expanded=True):
+            for feature in ["互动指数"]:
+                if feature in X.columns:
+                    default = default_weights.get(feature, 1.0)
+                    st.markdown(f"- {feature}")
+                    weight = st.slider(f"{feature}_slider", 0.0, 3.0, 0.1, value=default)
+                    adjusted_weights[feature] = weight
+
+        # === 🌐 外部参数 ===
+        with st.expander("🌐 外部参数", expanded=True):
+            for feature in ["是否节假日", "是否周末", "是否下午场", "竞争程度"]:
+                if feature in X.columns:
+                    default = default_weights.get(feature, 1.0)
+                    st.markdown(f"- {feature}")
+                    weight = st.slider(f"{feature}_slider", 0.0, 3.0, 0.1, value=default)
+                    adjusted_weights[feature] = weight
+
+        # === 🧩 其他参数 ===
+        with st.expander("🧩 其他参数", expanded=True):
+            for feature in ["剧场区域", "剧目类型", "周期", "是否常驻", "剧场规模"]:
+                if feature in X.columns:
+                    default = default_weights.get(feature, 1.0)
+                    st.markdown(f"- {feature}")
+                    weight = st.slider(f"{feature}_slider", 0.0, 3.0, 0.1, value=default)
+                    adjusted_weights[feature] = weight
+
 
 
         # 更新当前模型类型对应的权重
