@@ -666,14 +666,35 @@ if uploaded_file:
         # 初始化权重配置
         feature_weights_all = get_feature_weights(tag_values)
 
-        # 如果是自定义模型，提供滑块调整
-        if selected_model_type == "自定义模型":
-            st.markdown("🎛 自定义特征权重（范围 0.0 - 3.0）")
-            custom_weights = {}
-            for col in X.columns:
-                weight = st.slider(f"{col}", min_value=0.0, max_value=3.0, step=0.1, value=1.0)
-                custom_weights[col] = weight
-            feature_weights_all["自定义模型"] = custom_weights
+        # 显示特征权重滑块（不显示具体数值）
+        st.markdown("🎛 特征权重调整")
+
+        # 初始化权重配置
+        feature_weights_all = get_feature_weights(tag_values)
+
+        # 获取当前模型类型的默认权重
+        default_weights = feature_weights_all.get(selected_model_type, {})
+        adjusted_weights = {}
+
+        for col in X.columns:
+            # 获取默认权重（无则为 1.0）
+            default = default_weights.get(col, 1.0)
+            
+            # 使用 slider 但不显示当前值（通过 label_visibility="collapsed" 实现）
+            st.markdown(f"- {col}")
+            weight = st.slider(
+                label=f"{col}_slider",
+                min_value=0.0,
+                max_value=3.0,
+                step=0.1,
+                value=default,
+                label_visibility="collapsed"
+            )
+            adjusted_weights[col] = weight
+
+        # 更新当前模型类型对应的权重
+        feature_weights_all[selected_model_type] = adjusted_weights
+
 
 
         if st.session_state.run_prediction:
