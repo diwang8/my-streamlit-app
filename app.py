@@ -696,6 +696,28 @@ if uploaded_file:
         # 获取分成参数
         venue_share, tax_rate, channel_share, investor_share_payback, investor_share_profit = collect_distribution_inputs()
 
+        new_feature_vector = {
+            "剧目类型": type_map[show_type],
+            "是否常驻": resident_map[is_resident],
+            "剧场规模": scale_map[scale],
+            "剧场区域": region_map[region],
+            "演员阵容": actor_count,
+            "互动指数": interaction_score,
+            "营销程度": marketing_level,
+            "竞争程度": competition_level,
+            "最高价格": max_price,
+            "最低价格": min_price,
+            "周期": (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
+        }
+        new_feature_vector.update(tag_values)
+        new_df = pd.DataFrame([new_feature_vector])
+        new_df = pd.get_dummies(new_df)
+        new_df = new_df.reindex(columns=X.columns, fill_value=0)
+        new_scaled = scaler_model.transform(new_df)
+
+        cluster_id = kmeans_model.predict(new_scaled)[0]
+        auto_model_type = cluster_to_model_map[cluster_id]
+
         # 模型维度选择
         st.markdown("### 🧠 特征关注模型选择")
         model_types = ["通用模型", "运营侧重模型", "内容侧重模型", "竞争侧重模型", "区域及排期侧重模型"]
@@ -771,35 +793,15 @@ if uploaded_file:
 
 
 
+
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
 
         # 构造新剧特征向量用于聚类
-        new_feature_vector = {
-            "剧目类型": type_map[show_type],
-            "是否常驻": resident_map[is_resident],
-            "剧场规模": scale_map[scale],
-            "剧场区域": region_map[region],
-            "演员阵容": actor_count,
-            "互动指数": interaction_score,
-            "营销程度": marketing_level,
-            "竞争程度": competition_level,
-            "最高价格": max_price,
-            "最低价格": min_price,
-            "周期": (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
-        }
-        new_feature_vector.update(tag_values)
-        new_df = pd.DataFrame([new_feature_vector])
-        new_df = pd.get_dummies(new_df)
-        new_df = new_df.reindex(columns=X.columns, fill_value=0)
-        new_scaled = scaler_model.transform(new_df)
-
-        cluster_id = kmeans_model.predict(new_scaled)[0]
-        auto_model_type = cluster_to_model_map[cluster_id]
+        
 
         st.markdown("### 🤖 推荐模型维度（基于聚类）")
         st.success(f"系统推荐使用模型：**{auto_model_type}**（聚类编号：{cluster_id}）")
-
 
 
         if st.session_state.run_prediction:
