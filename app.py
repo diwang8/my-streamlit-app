@@ -615,6 +615,7 @@ if uploaded_file:
             with col3:
                 scale = st.selectbox("剧场规模", list(scale_map.keys()))
             region = st.selectbox("剧场区域", list(region_map.keys()))
+            seat_count = st.number_input("总座位数", min_value=0, value=150)
 
         # === 🚀 演出周期 ===
         with st.expander("📅 演出周期设置", expanded=True):
@@ -690,7 +691,8 @@ if uploaded_file:
             "演员阵容": actor_count,
             "互动指数": interaction_score,
             "营销程度": marketing_level,
-            "竞争程度": competition_level
+            "竞争程度": competition_level,
+            "总座位数": seat_count
         }
 
         # 自动推荐模型类型
@@ -800,6 +802,7 @@ if uploaded_file:
                 "最低价格": min_price,
                 "周期": (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
             })
+            schedule_df["演出月份"] = schedule_df["场次时间"].dt.month
     
             for k, v in input_dict.items():
                 schedule_df[k] = v
