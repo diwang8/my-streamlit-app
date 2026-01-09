@@ -753,8 +753,8 @@ if uploaded_file:
         <style>
         /* 控制所有 st.expander 内部内容区域的高度一致，并可滚动 */
         div[data-testid="stExpander"] > div > div:nth-child(2) {
-            min-height: 300px;
-            max-height: 300px;
+            min-height: 200px;
+            max-height: 200px;
             overflow-y: auto;
         }
         </style>
@@ -1020,3 +1020,4 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
