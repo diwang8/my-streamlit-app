@@ -673,7 +673,7 @@ if uploaded_file:
                 max_price = st.number_input("最高票价", value=680)
             with col2:
                 min_price = st.number_input("最低票价", value=80)
-            marketing_level = st.number_input("营销程度（搜索热度）", min_value=0, value=5000)
+            marketing_level = st.number_input("营销程度（搜索热度）", min_value=0, value=15)
 
     
         # 💰 成本参数设置（不参与模型预测）
