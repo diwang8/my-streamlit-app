@@ -283,21 +283,6 @@ def suggest_parameter_adjustments(
 
 st.set_page_config(layout="wide")
 
-st.markdown("""
-    <style>
-    /* 只让内容区域滚动，而不限制外层容器高度 */
-    div[data-testid="stExpander"] > details > summary + div {
-        overflow-y: auto;
-    }
-
-    /* 可选：限制内容区域最大高度 */
-    div[data-testid="stExpander"] > details > summary + div > div {
-        max-height: 300px;
-        overflow-y: auto;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 
 
 
@@ -762,6 +747,15 @@ if uploaded_file:
         # 🎛 特征权重调整（按图示分组）
         # 🎛 特征权重调整（按图示分组）
         st.markdown("🎛 特征权重调整")
+        st.markdown("""
+            <style>
+            /* 控制所有 expander 的内容区域高度和滚动条 */
+            div[data-testid="stExpander"] > details > summary + div {
+                max-height: 200px;
+                overflow-y: auto;
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
         adjusted_weights = {}
         already_handled = set()
