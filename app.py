@@ -284,25 +284,26 @@ def suggest_parameter_adjustments(
 st.set_page_config(layout="wide")
 st.markdown("""
     <style>
-    /* 外层容器不限制高度 */
+    /* 不限制外层 wrapper 高度 */
     div[data-testid="stExpander"] > details > summary + div {
         overflow: visible !important;
     }
 
-    /* wrapper 不限制高度 */
+    /* 不限制 wrapper */
     div[data-testid="stExpander"] > details > summary + div > div {
         overflow: visible !important;
     }
 
-    /* ✅ 真正限制内容区域的高度（block-container） */
-    div[data-testid="stExpander"] .block-container {
-        max-height: 100px;
+    /* ✅ 限制真正的内容区域高度 */
+    div[data-testid="stExpander"] .stExpanderContent {
+        max-height: 300px;
         overflow-y: auto;
         padding-right: 0.5rem;
         box-sizing: border-box;
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 
 
