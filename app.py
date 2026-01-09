@@ -742,43 +742,38 @@ if uploaded_file:
         default_weights = {col: raw_default_weights.get(col, 1.0) for col in X.columns}
 
         # 🎛 特征权重调整（按图示分组）
+        # 🎛 特征权重调整（按图示分组）
         st.markdown("🎛 特征权重调整")
 
         adjusted_weights = {}
         already_handled = set()
 
-        # 通用容器样式
-        box_style = """
-            <style>
-            .scroll-box {
-                border: 1px solid #ccc;
-                padding: 10px;
-                height: 300px;
-                overflow-y: auto;
-                background-color: #f9f9f9;
-                border-radius: 5px;
-            }
-            </style>
-        """
-        st.markdown(box_style, unsafe_allow_html=True)
+        # 注入统一样式：限制 expander 内部内容高度
+        st.markdown("""
+        <style>
+        /* 让每个特征模块内容区域高度一致并可滚动 */
+        div[data-testid="stExpander"] > div > div:nth-child(2) {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
 
         # 第一行：运营参数 + 内容参数
         col1, col2 = st.columns(2)
 
         with col1:
             with st.expander("📣 运营参数", expanded=True):
-                st.markdown('<div class="scroll-box">', unsafe_allow_html=True)
                 for feature in ["最高价格", "最低价格", "营销程度", "周期", "总座位数"]:
                     if feature in X.columns:
                         default = default_weights.get(feature, 1.0)
                         weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
-                st.markdown('</div>', unsafe_allow_html=True)
 
         with col2:
             with st.expander("🎭 内容参数", expanded=True):
-                st.markdown('<div class="scroll-box">', unsafe_allow_html=True)
                 sample_tag = next((tag for tag in tag_values if tag in default_weights), None)
                 tag_default = default_weights.get(sample_tag, 1.0) if sample_tag else 1.0
                 tag_weight = st.slider("题材标签", 0.0, 3.0, step=0.1, value=tag_default, key="slider_题材标签")
@@ -792,25 +787,21 @@ if uploaded_file:
                         weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
-                st.markdown('</div>', unsafe_allow_html=True)
 
         # 第二行：外部参数 + 其他参数
         col3, col4 = st.columns(2)
 
         with col3:
             with st.expander("🌐 外部参数", expanded=True):
-                st.markdown('<div class="scroll-box">', unsafe_allow_html=True)
                 for feature in ["竞争程度", "是否节假日", "是否周末", "是否下午场"]:
                     if feature in X.columns:
                         default = default_weights.get(feature, 1.0)
                         weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
-                st.markdown('</div>', unsafe_allow_html=True)
 
         with col4:
             with st.expander("🧩 其他参数", expanded=True):
-                st.markdown('<div class="scroll-box">', unsafe_allow_html=True)
                 for feature in X.columns:
                     if feature in already_handled:
                         continue
@@ -820,7 +811,6 @@ if uploaded_file:
                     weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                     adjusted_weights[feature] = weight
                     already_handled.add(feature)
-                st.markdown('</div>', unsafe_allow_html=True)
 
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
