@@ -746,9 +746,17 @@ if uploaded_file:
         selected_model_type = st.selectbox("选择特征关注模型", model_types, index=model_types.index(auto_model_type))
         st.markdown("### 🤖 推荐模型类型")
         st.success(f"系统推荐使用模型：**{auto_model_type}**")
-        # ✅ 初始化 session_state 中的当前模型类型
+        # ✅ 初始化 session_state 中的当前模型类型及滑块值
         if "current_model_type" not in st.session_state:
             st.session_state.current_model_type = selected_model_type
+            feature_weights_all = get_feature_weights(tag_values)
+            raw_default_weights = feature_weights_all.get(selected_model_type, {})
+            for feature in X.columns:
+                st.session_state[f"slider_{feature}"] = raw_default_weights.get(feature, 1.0)
+            for tag in tag_values:
+                st.session_state[f"slider_{tag}"] = raw_default_weights.get(tag, 1.0)
+            st.session_state["slider_题材标签"] = next(iter(raw_default_weights.values()), 1.0)
+
 
         for reason in auto_reasons:
             st.markdown(f"- {reason}")
