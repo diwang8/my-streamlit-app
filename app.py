@@ -291,7 +291,6 @@ st.markdown("""
 
     /* 只让真正的内容区域滚动 */
     div[data-testid="stExpander"] > details > summary + div > div {
-        max-height: 300px;
         overflow-y: auto;
         padding-right: 0.5rem;  /* 避免滚动条遮挡 */
     }
