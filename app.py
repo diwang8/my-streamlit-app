@@ -746,6 +746,24 @@ if uploaded_file:
         selected_model_type = st.selectbox("选择特征关注模型", model_types, index=model_types.index(auto_model_type))
         st.markdown("### 🤖 推荐模型类型")
         st.success(f"系统推荐使用模型：**{auto_model_type}**")
+        # ✅ 初始化 session_state 中的当前模型类型
+        if "current_model_type" not in st.session_state:
+            st.session_state.current_model_type = selected_model_type
+
+        # ✅ 检测模型是否变化
+        model_changed = selected_model_type != st.session_state.current_model_type
+
+        # ✅ 如果模型变化，更新 session_state 中所有滑块默认值
+        if model_changed:
+            st.session_state.current_model_type = selected_model_type
+            raw_default_weights = get_feature_weights(tag_values).get(selected_model_type, {})
+            for feature in X.columns:
+                st.session_state[f"slider_{feature}"] = raw_default_weights.get(feature, 1.0)
+            # 特殊处理题材标签统一滑块
+            for tag in tag_values:
+                st.session_state[f"slider_{tag}"] = raw_default_weights.get(tag, 1.0)
+            st.session_state["slider_题材标签"] = next(iter(raw_default_weights.values()), 1.0)
+
         for reason in auto_reasons:
             st.markdown(f"- {reason}")
 
@@ -780,7 +798,8 @@ if uploaded_file:
                 for feature in ["最高价格", "最低价格", "营销程度", "周期", "总座位数"]:
                     if feature in X.columns:
                         default = default_weights.get(feature, 1.0)
-                        weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
+                        weight = st.slider(feature, 0.0, 3.0, step=0.1, value=st.session_state.get(f"slider_{feature}", 1.0), key=f"slider_{feature}")
+                        st.session_state[f"slider_{feature}"] = weight
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
 
@@ -788,7 +807,8 @@ if uploaded_file:
             with st.expander("🎭 内容参数", expanded=True):
                 sample_tag = next((tag for tag in tag_values if tag in default_weights), None)
                 tag_default = default_weights.get(sample_tag, 1.0) if sample_tag else 1.0
-                tag_weight = st.slider("题材标签", 0.0, 3.0, step=0.1, value=tag_default, key="slider_题材标签")
+                tag_weight = st.slider("题材标签", 0.0, 3.0, step=0.1, value=st.session_state.get("slider_题材标签", 1.0), key="slider_题材标签")
+                st.session_state[f"slider_{feature}"] = weight
                 for tag in tag_values.keys():
                     adjusted_weights[tag] = tag_weight
                     already_handled.add(tag)
@@ -796,7 +816,8 @@ if uploaded_file:
                 for feature in ["演员阵容", "互动指数"]:
                     if feature in X.columns:
                         default = default_weights.get(feature, 1.0)
-                        weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
+                        weight = st.slider(feature, 0.0, 3.0, step=0.1, value=st.session_state.get(f"slider_{feature}", 1.0), key=f"slider_{feature}")
+                        st.session_state[f"slider_{feature}"] = weight
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
 
@@ -808,7 +829,8 @@ if uploaded_file:
                 for feature in ["竞争程度", "是否节假日", "是否周末", "是否下午场"]:
                     if feature in X.columns:
                         default = default_weights.get(feature, 1.0)
-                        weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
+                        weight = st.slider(feature, 0.0, 3.0, step=0.1, value=st.session_state.get(f"slider_{feature}", 1.0), key=f"slider_{feature}")
+                        st.session_state[f"slider_{feature}"] = weight
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
 
@@ -820,7 +842,8 @@ if uploaded_file:
                     if "_" in feature and any(feature.startswith(prefix + "_") for prefix in ["剧场区域", "剧目类型"]):
                         continue
                     default = default_weights.get(feature, 1.0)
-                    weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
+                    st.session_state[f"slider_{feature}"] = weight
+                    weight = st.slider(feature, 0.0, 3.0, step=0.1, value=st.session_state.get(f"slider_{feature}", 1.0), key=f"slider_{feature}")
                     adjusted_weights[feature] = weight
                     already_handled.add(feature)
 
