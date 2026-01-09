@@ -283,6 +283,16 @@ def suggest_parameter_adjustments(
 
 st.set_page_config(layout="wide")
 
+st.markdown("""
+    <style>
+    .scrollable-expander .streamlit-expanderContent {
+        max-height: 300px;  /* 控制统一高度 */
+        overflow-y: auto;   /* 添加垂直滚动条 */
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
 st.title("🎭 剧目营收预测系统")
 
 def collect_cost_inputs():
@@ -752,7 +762,7 @@ if uploaded_file:
         col1, col2 = st.columns(2)
 
         with col1:
-            with st.expander("📣 运营参数", expanded=True):
+            with st.expander("📣 运营参数", expanded=True, class_="scrollable-expander"):
                 for feature in ["最高价格", "最低价格", "营销程度", "周期", "总座位数"]:
                     if feature in X.columns:
                         default = default_weights.get(feature, 1.0)
@@ -761,7 +771,7 @@ if uploaded_file:
                         already_handled.add(feature)
 
         with col2:
-            with st.expander("🎭 内容参数", expanded=True):
+            with st.expander("🎭 内容参数", expanded=True, class_="scrollable-expander"):
                 sample_tag = next((tag for tag in tag_values if tag in default_weights), None)
                 tag_default = default_weights.get(sample_tag, 1.0) if sample_tag else 1.0
                 tag_weight = st.slider("题材标签", 0.0, 3.0, step=0.1, value=tag_default, key="slider_题材标签")
@@ -780,7 +790,7 @@ if uploaded_file:
         col3, col4 = st.columns(2)
 
         with col3:
-            with st.expander("🌐 外部参数", expanded=True):
+            with st.expander("🌐 外部参数", expanded=True, class_="scrollable-expander"):
                 for feature in ["竞争程度", "是否节假日", "是否周末", "是否下午场"]:
                     if feature in X.columns:
                         default = default_weights.get(feature, 1.0)
@@ -789,7 +799,7 @@ if uploaded_file:
                         already_handled.add(feature)
 
         with col4:
-            with st.expander("🧩 其他参数", expanded=True):
+            with st.expander("🧩 其他参数", expanded=True, class_="scrollable-expander"):
                 for feature in X.columns:
                     if feature in already_handled:
                         continue
