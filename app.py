@@ -284,18 +284,20 @@ def suggest_parameter_adjustments(
 st.set_page_config(layout="wide")
 st.markdown("""
     <style>
-    /* 只让内容区域滚动，而不限制外层容器高度 */
+    /* 只滚动内容，不限制容器高度 */
     div[data-testid="stExpander"] > details > summary + div {
-        overflow-y: auto;
+        overflow: visible !important;
     }
 
-    /* 可选：限制内容区域最大高度 */
+    /* 只让真正的内容区域滚动 */
     div[data-testid="stExpander"] > details > summary + div > div {
         max-height: 300px;
         overflow-y: auto;
+        padding-right: 0.5rem;  /* 避免滚动条遮挡 */
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 st.title("🎭 剧目营收预测系统")
 
