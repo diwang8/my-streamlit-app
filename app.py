@@ -651,8 +651,8 @@ if uploaded_file:
         # 🎭 剧目参数设置（参与模型预测）
         st.markdown("### 🧩 参数设置（按类型分组）")
 
-        # === 🎭 其他参数 ===
-        with st.expander("🎭 其他参数", expanded=True):
+        # === 🎭 基本参数 ===
+        with st.expander("🎭 基本参数", expanded=True):
             col1, col2, col3 = st.columns(3)
             with col1:
                 show_type = st.selectbox("剧目类型", list(type_map.keys()))
@@ -848,7 +848,7 @@ if uploaded_file:
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
 
-        # 第二行：外部参数 + 其他参数
+        # 第二行：外部参数 + 基本参数
         col3, col4 = st.columns(2)
 
         with col3:
@@ -864,7 +864,7 @@ if uploaded_file:
                         already_handled.add(feature)
 
         with col4:
-            with st.expander("🧩 其他参数", expanded=True):
+            with st.expander("🧩 基本参数", expanded=True):
                 for feature in X.columns:
                     if feature in already_handled:
                         continue
