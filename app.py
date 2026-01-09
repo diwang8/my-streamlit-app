@@ -760,7 +760,12 @@ if uploaded_file:
         # === 🎭 内容参数 ===
         with st.expander("🎭 内容参数", expanded=True):
             st.markdown("- 题材标签")
-            tag_weight = st.slider("题材标签", 0.0, 3.0, step=0.1, value=default_weights.get("题材标签", 1.0), key="slider_题材标签")
+            # 从任一 tag 的默认权重中取值作为“题材标签” slider 的默认值
+            sample_tag = next((tag for tag in tag_values if tag in default_weights), None)
+            tag_default = default_weights.get(sample_tag, 1.0) if sample_tag else 1.0
+
+            tag_weight = st.slider("题材标签", 0.0, 3.0, step=0.1, value=tag_default, key="slider_题材标签")
+
             for tag in tag_values.keys():
                 adjusted_weights[tag] = tag_weight
                 already_handled.add(tag)
