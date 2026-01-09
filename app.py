@@ -751,13 +751,15 @@ if uploaded_file:
         # 注入统一样式：限制 expander 内部内容高度
         st.markdown("""
         <style>
-        /* 让每个特征模块内容区域高度一致并可滚动 */
+        /* 控制所有 st.expander 内部内容区域的高度一致，并可滚动 */
         div[data-testid="stExpander"] > div > div:nth-child(2) {
+            min-height: 300px;
             max-height: 300px;
             overflow-y: auto;
         }
         </style>
         """, unsafe_allow_html=True)
+
 
 
         # 第一行：运营参数 + 内容参数
