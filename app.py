@@ -748,32 +748,6 @@ if uploaded_file:
         adjusted_weights = {}
         already_handled = set()
 
-        # 注入统一样式：限制 expander 内部内容高度
-        st.markdown("""
-        <style>
-        /* 1. 设置两列容器为 grid，列宽均分 */
-        .feature-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        /* 2. 每个模块固定高度，内容可滚动 */
-        .feature-box .stExpander {
-            height: 340px;
-            overflow: hidden;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-        }
-
-        /* 3. 限制 expander 内容区域高度 */
-        .feature-box .stExpander > div > div:nth-child(2) {
-            height: 300px;
-            overflow-y: auto;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
         # 第一行：运营参数 + 内容参数
         col1, col2 = st.columns(2)
 
