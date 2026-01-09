@@ -284,18 +284,26 @@ def suggest_parameter_adjustments(
 st.set_page_config(layout="wide")
 st.markdown("""
     <style>
-    /* 只滚动内容，不限制容器高度 */
+    /* 外层容器不限制高度 */
     div[data-testid="stExpander"] > details > summary + div {
         overflow: visible !important;
     }
 
-    /* 只让真正的内容区域滚动 */
+    /* wrapper 不限制高度 */
     div[data-testid="stExpander"] > details > summary + div > div {
+        overflow: visible !important;
+    }
+
+    /* ✅ 真正限制内容区域的高度（block-container） */
+    div[data-testid="stExpander"] .block-container {
+        max-height: 300px;
         overflow-y: auto;
-        padding-right: 0.5rem;  /* 避免滚动条遮挡 */
+        padding-right: 0.5rem;
+        box-sizing: border-box;
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 
 st.title("🎭 剧目营收预测系统")
