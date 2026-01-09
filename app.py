@@ -529,10 +529,10 @@ if uploaded_file:
         if marketing_level >= 20 or max_price >= 600:
             reasons.append("营销程度较高，适合运营侧重模型")
             return "运营侧重模型", reasons
-        elif actor_score >= 3 or tag_score >= 3 or interaction_score >= 4:
+        elif actor_score >= 4 or tag_score >= 3 or interaction_score >= 4:
             reasons.append("演员阵容强或题材丰富，适合内容侧重模型")
             return "内容侧重模型", reasons
-        elif competition_level >= 3:
+        elif competition_level >= 4:
             reasons.append("竞争程度较高，适合竞争侧重模型")
             return "竞争侧重模型", reasons
         elif duration >= 180 or resident == 1 or scale == 1:
