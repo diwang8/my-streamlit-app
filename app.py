@@ -775,10 +775,9 @@ if uploaded_file:
         """, unsafe_allow_html=True)
 
         # 第一行：运营参数 + 内容参数
-        st.markdown('<div class="feature-grid">', unsafe_allow_html=True)
-        
-        with st.container():
-            st.markdown('<div class="feature-box">', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+
+        with col1:
             with st.expander("📣 运营参数", expanded=True):
                 for feature in ["最高价格", "最低价格", "营销程度", "周期", "总座位数"]:
                     if feature in X.columns:
@@ -786,10 +785,8 @@ if uploaded_file:
                         weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
-            st.markdown('</div>', unsafe_allow_html=True)
 
-        with st.container():
-            st.markdown('<div class="feature-box">', unsafe_allow_html=True)
+        with col2:
             with st.expander("🎭 内容参数", expanded=True):
                 sample_tag = next((tag for tag in tag_values if tag in default_weights), None)
                 tag_default = default_weights.get(sample_tag, 1.0) if sample_tag else 1.0
@@ -804,15 +801,11 @@ if uploaded_file:
                         weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        st.markdown('</div>', unsafe_allow_html=True)
 
         # 第二行：外部参数 + 其他参数
-        st.markdown('<div class="feature-grid">', unsafe_allow_html=True)
+        col3, col4 = st.columns(2)
 
-        with st.container():
-            st.markdown('<div class="feature-box">', unsafe_allow_html=True)
+        with col3:
             with st.expander("🌐 外部参数", expanded=True):
                 for feature in ["竞争程度", "是否节假日", "是否周末", "是否下午场"]:
                     if feature in X.columns:
@@ -820,10 +813,8 @@ if uploaded_file:
                         weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
-            st.markdown('</div>', unsafe_allow_html=True)
 
-        with st.container():
-            st.markdown('<div class="feature-box">', unsafe_allow_html=True)
+        with col4:
             with st.expander("🧩 其他参数", expanded=True):
                 for feature in X.columns:
                     if feature in already_handled:
@@ -834,10 +825,6 @@ if uploaded_file:
                     weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                     adjusted_weights[feature] = weight
                     already_handled.add(feature)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
 
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
