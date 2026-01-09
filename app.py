@@ -751,21 +751,34 @@ if uploaded_file:
         # 注入统一样式：限制 expander 内部内容高度
         st.markdown("""
         <style>
-        /* 控制所有 st.expander 内部内容区域的高度一致，并可滚动 */
-        div[data-testid="stExpander"] > div > div:nth-child(2) {
-            min-height: 200px;
-            max-height: 200px;
+        /* 1. 设置两列容器为 grid，列宽均分 */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* 2. 每个模块固定高度，内容可滚动 */
+        .feature-box .stExpander {
+            height: 340px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        /* 3. 限制 expander 内容区域高度 */
+        .feature-box .stExpander > div > div:nth-child(2) {
+            height: 300px;
             overflow-y: auto;
         }
         </style>
         """, unsafe_allow_html=True)
 
-
-
         # 第一行：运营参数 + 内容参数
-        col1, col2 = st.columns(2)
-
-        with col1:
+        st.markdown('<div class="feature-grid">', unsafe_allow_html=True)
+        
+        with st.container():
+            st.markdown('<div class="feature-box">', unsafe_allow_html=True)
             with st.expander("📣 运营参数", expanded=True):
                 for feature in ["最高价格", "最低价格", "营销程度", "周期", "总座位数"]:
                     if feature in X.columns:
@@ -773,8 +786,10 @@ if uploaded_file:
                         weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        with col2:
+        with st.container():
+            st.markdown('<div class="feature-box">', unsafe_allow_html=True)
             with st.expander("🎭 内容参数", expanded=True):
                 sample_tag = next((tag for tag in tag_values if tag in default_weights), None)
                 tag_default = default_weights.get(sample_tag, 1.0) if sample_tag else 1.0
@@ -789,11 +804,15 @@ if uploaded_file:
                         weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
         # 第二行：外部参数 + 其他参数
-        col3, col4 = st.columns(2)
+        st.markdown('<div class="feature-grid">', unsafe_allow_html=True)
 
-        with col3:
+        with st.container():
+            st.markdown('<div class="feature-box">', unsafe_allow_html=True)
             with st.expander("🌐 外部参数", expanded=True):
                 for feature in ["竞争程度", "是否节假日", "是否周末", "是否下午场"]:
                     if feature in X.columns:
@@ -801,8 +820,10 @@ if uploaded_file:
                         weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                         adjusted_weights[feature] = weight
                         already_handled.add(feature)
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        with col4:
+        with st.container():
+            st.markdown('<div class="feature-box">', unsafe_allow_html=True)
             with st.expander("🧩 其他参数", expanded=True):
                 for feature in X.columns:
                     if feature in already_handled:
@@ -813,6 +834,10 @@ if uploaded_file:
                     weight = st.slider(feature, 0.0, 3.0, step=0.1, value=default, key=f"slider_{feature}")
                     adjusted_weights[feature] = weight
                     already_handled.add(feature)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
 
         # 更新当前模型类型对应的权重
         feature_weights_all[selected_model_type] = adjusted_weights
@@ -1020,4 +1045,3 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
-
