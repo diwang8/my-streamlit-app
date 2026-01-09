@@ -489,16 +489,16 @@ if uploaded_file:
         region = input_dict.get("剧场区域", 0)
 
         # 评分逻辑
-        if marketing_level >= 5000:
+        if marketing_level >= 20 or max_price >= 600:
             reasons.append("营销程度较高，适合运营侧重模型")
             return "运营侧重模型", reasons
-        elif actor_score >= 3 or tag_score >= 3 or interaction_score >= 3:
+        elif actor_score >= 3 or tag_score >= 3 or interaction_score >= 4:
             reasons.append("演员阵容强或题材丰富，适合内容侧重模型")
             return "内容侧重模型", reasons
         elif competition_level >= 3:
             reasons.append("竞争程度较高，适合竞争侧重模型")
             return "竞争侧重模型", reasons
-        elif duration >= 60 or resident == 1 or scale == 1:
+        elif duration >= 180 or resident == 1 or scale == 1:
             reasons.append("周期较长或常驻/大剧场，适合区域及排期侧重模型")
             return "区域及排期侧重模型", reasons
         else:
@@ -670,9 +670,9 @@ if uploaded_file:
         with st.expander("📣 运营参数", expanded=True):
             col1, col2 = st.columns(2)
             with col1:
-                max_price = st.number_input("最高票价", value=680)
+                max_price = st.number_input("最高票价", value=580)
             with col2:
-                min_price = st.number_input("最低票价", value=80)
+                min_price = st.number_input("最低票价", value=180)
             marketing_level = st.number_input("营销程度（搜索热度）", min_value=0, value=15)
 
     
