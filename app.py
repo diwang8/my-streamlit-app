@@ -296,7 +296,7 @@ st.markdown("""
 
     /* ✅ 限制真正的内容区域高度 */
     div[data-testid="stExpander"] .stExpanderContent {
-        max-height: 300px;
+        max-height: 200px;
         overflow-y: auto;
         padding-right: 0.5rem;
         box-sizing: border-box;
