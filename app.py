@@ -699,8 +699,13 @@ if uploaded_file:
         with st.expander("🧠 内容参数", expanded=True):
             all_tags = ["悬疑", "推理", "喜剧", "恐怖", "惊悚", "犯罪", "爱情", "历史", "传记",
                         "科幻", "奇幻", "玄幻", "灾难", "社会现实", "家庭伦理", "艺术文化", "战争", "职场", "其他"]
-            selected_tags = st.multiselect("请选择题材标签（可多选）", options=all_tags)
+            selected_tags = st.multiselect(
+                "请选择题材标签（可多选）",
+                options=all_tags,
+                default=["悬疑", "推理"]
+            )
             tag_values = {tag: (1 if tag in selected_tags else 0) for tag in all_tags}
+
 
             col1, col2 = st.columns(2)
             with col1:
