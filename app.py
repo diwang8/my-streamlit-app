@@ -651,66 +651,85 @@ if uploaded_file:
         # 🎭 剧目参数设置（参与模型预测）
         st.markdown("### 🧩 参数设置（按类型分组）")
 
-        # 第一行：基本参数 + 演出周期
-        col1, col2 = st.columns(2)
-        with col1:
-            with st.expander("🎭 基本参数", expanded=True):
-                colb1, colb2, colb3 = st.columns(3)
-                with colb1:
-                    show_type = st.selectbox("剧目类型", list(type_map.keys()))
-                with colb2:
-                    is_resident = st.selectbox("是否常驻", list(resident_map.keys()))
-                with colb3:
-                    scale = st.selectbox("剧场规模", list(scale_map.keys()))
-                region = st.selectbox("剧场区域", list(region_map.keys()))
-                seat_count = st.number_input("总座位数", min_value=0, value=150)
+        # === 🎭 基本参数 ===
+        with st.expander("🎭 基本参数", expanded=True):
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                show_type = st.selectbox("剧目类型", list(type_map.keys()))
+            with col2:
+                is_resident = st.selectbox("是否常驻", list(resident_map.keys()))
+            with col3:
+                scale = st.selectbox("剧场规模", list(scale_map.keys()))
+            region = st.selectbox("剧场区域", list(region_map.keys()))
+            seat_count = st.number_input("总座位数", min_value=0, value=150)
 
-        with col2:
-            with st.expander("📅 演出周期设置", expanded=True):
-                today = pd.to_datetime("2026-01-01")
-                max_date = today + pd.DateOffset(years=3)
-                cold1, cold2 = st.columns(2)
-                with cold1:
-                    start_date = st.date_input("开始日期", value=today.date(), min_value=today.date(), max_value=max_date.date())
-                with cold2:
-                    end_date = st.date_input("结束日期", value=(today + pd.Timedelta(days=730)).date(), min_value=today.date(), max_value=max_date.date())
-                if end_date < start_date:
-                    st.warning("结束日期不能早于开始日期")
-                    st.stop()
+        # === 🚀 演出周期 ===
+        with st.expander("📅 演出周期设置", expanded=True):
+            today = pd.to_datetime("2026-01-01")
+            max_date = today + pd.DateOffset(years=3)
+            col1, col2 = st.columns(2)
+            with col1:
+                start_date = st.date_input("开始日期", value=today.date(), min_value=today.date(), max_value=max_date.date())
+            with col2:
+                end_date = st.date_input("结束日期", value=(today + pd.Timedelta(days=730)).date(), min_value=today.date(), max_value=max_date.date())
+            if end_date < start_date:
+                st.warning("结束日期不能早于开始日期")
+                st.stop()
 
-        # 第二行：内容参数 + 外部参数
-        col3, col4 = st.columns(2)
-        with col3:
-            with st.expander("🧠 内容参数", expanded=True):
-                all_tags = [...]
-                selected_tags = st.multiselect("请选择题材标签（可多选）", options=all_tags, default=["悬疑", "推理"])
-                tag_values = {tag: (1 if tag in selected_tags else 0) for tag in all_tags}
-                colc1, colc2 = st.columns(2)
-                with colc1:
-                    actor_count = st.number_input("演员阵容（知名演员数量）", min_value=0, value=3)
-                with colc2:
-                    interaction_score = st.slider("互动指数（0-5）", min_value=0.0, max_value=5.0, step=0.1, value=3.0)
+        # === 🗓 每周排期 ===
+        with st.expander("🗓 每周排期设置", expanded=False):
+            weekday_map = {0: "周一", 1: "周二", 2: "周三", 3: "周四", 4: "周五", 5: "周六", 6: "周日"}
+            time_options = ["不演", "14:30", "19:30", "14:30 和 19:30"]
+            weekly_plan = {}
+            for i in range(7):
+                default_choice = "19:30" if i < 5 else "14:30 和 19:30"
+                choice = st.selectbox(f"{weekday_map[i]}", time_options, index=time_options.index(default_choice), key=f"weekday_{i}")
+                if choice == "14:30":
+                    weekly_plan[str(i)] = ["14:30"]
+                elif choice == "19:30":
+                    weekly_plan[str(i)] = ["19:30"]
+                elif choice == "14:30 和 19:30":
+                    weekly_plan[str(i)] = ["14:30", "19:30"]
+                else:
+                    weekly_plan[str(i)] = []
+            all_times = generate_show_schedule(pd.to_datetime(start_date), pd.to_datetime(end_date), weekly_plan)
+            st.success(f"共生成 {len(all_times)} 场")
 
-        with col4:
-            with st.expander("🌐 外部参数", expanded=True):
-                competition_level = st.number_input("竞争程度（同期竞品数量）", min_value=0, value=2)
+        # === 🧠 内容参数 ===
+        with st.expander("🧠 内容参数", expanded=True):
+            all_tags = ["悬疑", "推理", "喜剧", "恐怖", "惊悚", "犯罪", "爱情", "历史", "传记",
+                        "科幻", "奇幻", "玄幻", "灾难", "社会现实", "家庭伦理", "艺术文化", "战争", "职场", "其他"]
+            selected_tags = st.multiselect(
+                "请选择题材标签（可多选）",
+                options=all_tags,
+                default=["悬疑", "推理"]
+            )
+            tag_values = {tag: (1 if tag in selected_tags else 0) for tag in all_tags}
 
-        # 第三行：运营参数 + 成本参数
-        col5, col6 = st.columns(2)
-        with col5:
-            with st.expander("📣 运营参数", expanded=True):
-                colp1, colp2 = st.columns(2)
-                with colp1:
-                    max_price = st.number_input("最高票价", value=580)
-                with colp2:
-                    min_price = st.number_input("最低票价", value=180)
-                marketing_level = st.number_input("营销程度（搜索热度）", min_value=0, value=15)
 
-        with col6:
-            st.markdown("### 💰 成本参数设置（仅用于收益分析）")
-            one_time_cost, per_show_cost, monthly_admin = collect_cost_inputs()
+            col1, col2 = st.columns(2)
+            with col1:
+                actor_count = st.number_input("演员阵容（知名演员数量）", min_value=0, value=3)
+            with col2:
+                interaction_score = st.slider("互动指数（0-5）", min_value=0.0, max_value=5.0, step=0.1, value=3.0)
+
+        # === 🌐 外部参数 ===
+        with st.expander("🌐 外部参数", expanded=True):
+            competition_level = st.number_input("竞争程度（同期竞品数量）", min_value=0, value=2)
+
+        # === 📣 运营参数 ===
+        with st.expander("📣 运营参数", expanded=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                max_price = st.number_input("最高票价", value=580)
+            with col2:
+                min_price = st.number_input("最低票价", value=180)
+            marketing_level = st.number_input("营销程度（搜索热度）", min_value=0, value=15)
 
     
+        # 💰 成本参数设置（不参与模型预测）
+        st.markdown("### 💰 成本参数设置（仅用于收益分析）")
+        one_time_cost, per_show_cost, monthly_admin = collect_cost_inputs()
 
         # 获取分成参数
         venue_share, tax_rate, channel_share, investor_share_payback, investor_share_profit = collect_distribution_inputs()
