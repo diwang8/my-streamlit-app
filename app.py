@@ -992,7 +992,7 @@ if uploaded_file:
                 # 图 1：每场预测营收（条形图）
                 st.subheader("📊 每场预测营收（条形图）")
                 fig1, ax1 = plt.subplots(figsize=(12, 5))
-                ax1.bar(x, schedule_df["预测营收"], color="#F28E2B", width=0.6, alpha=1.0, zorder=1)
+                ax1.bar(x, schedule_df["预测营收"], color="#F28E2B", width=1, alpha=1.0, zorder=1)
                 ax1.set_xticks(x[::xtick_step])
                 ax1.set_xticklabels(schedule_df["场次时间"].dt.strftime("%Y-%m-%d")[::xtick_step], rotation=45)
                 format_ax(ax1, "每场次预测营收", "场次时间", "预测营收（元）")
@@ -1017,7 +1017,7 @@ if uploaded_file:
                 fig3, ax3 = plt.subplots(figsize=(12, 5))
 
                 # 条形图
-                ax3.bar(x, schedule_df["投资者收益"], label="每场投资者收益", color="#2E7D32", width=0.6, alpha=1.0, zorder=1)
+                ax3.bar(x, schedule_df["投资者收益"], label="每场投资者收益", color="#2E7D32", width=1, alpha=1.0, zorder=1)
                 ax3.set_ylabel("每场收益（元）", fontsize=12, color="black")
                 ax3.tick_params(axis='y', labelcolor="black", labelsize=10)
 
@@ -1039,7 +1039,7 @@ if uploaded_file:
                 fig4, ax4 = plt.subplots(figsize=(12, 5))
 
                 # 条形图
-                ax4.bar(x, schedule_df["运营者收益"], label="每场运营者收益", color="#2E7D32", width=0.6, alpha=1.0, zorder=1)
+                ax4.bar(x, schedule_df["运营者收益"], label="每场运营者收益", color="#2E7D32", width=1, alpha=1.0, zorder=1)
                 ax4.set_ylabel("每场收益（元）", fontsize=12, color="black")
                 ax4.tick_params(axis='y', labelcolor="black", labelsize=10)
 
