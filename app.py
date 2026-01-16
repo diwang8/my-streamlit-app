@@ -1026,6 +1026,8 @@ if uploaded_file:
 
                 # 折线图
                 ax3b = ax3.twinx()
+                ax3b.yaxis.set_major_formatter(mtick.StrMethodFormatter('{x:,.0f}'))
+
                 ax3b.plot(x, schedule_df["累计投资者收益"], label="累计投资者收益", color="#004D40", marker='o', zorder=2)
                 ax3b.set_ylabel("累计收益（元）", fontsize=12, color="black")
                 ax3b.tick_params(axis='y', labelcolor="black", labelsize=10)
@@ -1048,6 +1050,7 @@ if uploaded_file:
 
                 # 折线图
                 ax4b = ax4.twinx()
+                ax4b.yaxis.set_major_formatter(mtick.StrMethodFormatter('{x:,.0f}'))
                 ax4b.plot(x, schedule_df["累计运营者收益"], label="累计运营者收益", color="#1B5E20", marker='s', zorder=2)
                 ax4b.set_ylabel("累计收益（元）", fontsize=12, color="black")
                 ax4b.tick_params(axis='y', labelcolor="black", labelsize=10)
