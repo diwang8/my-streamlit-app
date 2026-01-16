@@ -42,7 +42,9 @@ def format_ax(ax, title, xlabel, ylabel):
     ax.legend(loc="upper left")
     ax.tick_params(axis='x', labelsize=10, labelcolor="black")
     ax.tick_params(axis='y', labelsize=10, labelcolor="black")
-    ax.yaxis.set_major_formatter(mtick.StrMethodFormatter('{x:,.0f}'))
+    ax.yaxis.set_major_formatter(mtick.StrMethodFormatter('{x:,.0f}'))  # 千位分隔
+    ax.ticklabel_format(style='plain', axis='y')  # ✅ 禁用科学计数法
+
 
 
 
