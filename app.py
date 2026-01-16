@@ -623,6 +623,10 @@ if uploaded_file:
         # 添加预测结果
         selected_rows["预测营收"] = y_pred
         selected_rows = selected_rows.sort_values("场次时间")
+        # 添加累计列，避免 KeyError
+        selected_rows["累计实际营收"] = selected_rows["营业收入"].cumsum()
+        selected_rows["累计预测营收"] = selected_rows["预测营收"].cumsum()
+
 
         # 图 1：单场次实际 vs 预测（条形图）
         st.subheader("📊 单场次实际营收 vs 预测营收")
