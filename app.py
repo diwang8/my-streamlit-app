@@ -24,7 +24,9 @@ from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
 from datetime import datetime, timedelta
 import matplotlib.ticker as mtick
-plt.style.use("seaborn-whitegrid")
+import seaborn as sns
+sns.set_theme(style="whitegrid")
+
 
 colors = {
     "actual": "#4E79A7",       # 蓝色
