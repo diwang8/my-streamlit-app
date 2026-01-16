@@ -982,73 +982,54 @@ if uploaded_file:
                 
                # 图 3：投资者收益
                 st.subheader("💹 投资者收益趋势（双轴）")
+                fig3, ax3 = plt.subplots(figsize=(12, 5))
 
-                x = np.arange(len(schedule_df))  # 数值型 x 轴
-                labels = schedule_df["场次时间"].dt.strftime("%m-%d")
+                # 左轴：每场投资者收益（条形图）
+                ax3.bar(schedule_df["场次时间"], schedule_df["投资者收益"], label="每场投资者收益", color=colors["investor"])
+                ax3.set_ylabel("每场收益（元）", fontsize=12, color=colors["investor"])
+                ax3.tick_params(axis='y', labelcolor=colors["investor"])
+                ax3.tick_params(axis='x', rotation=45)
 
-                fig, ax1 = plt.subplots(figsize=(12, 5))
-
-                # 左轴：每场收益（柱状图）
-                bar = ax1.bar(x - 0.2, schedule_df["投资者收益"], width=0.4, label="每场投资者收益", color=colors["investor"], alpha=0.8)
-                ax1.set_ylabel("每场收益（元）", fontsize=12, color=colors["investor"])
-                ax1.tick_params(axis='y', labelcolor=colors["investor"])
-                ax1.set_xticks(x)
-                ax1.set_xticklabels(labels, rotation=45)
-
-                # 右轴：累计收益（折线图）
-                ax2 = ax1.twinx()
-                line, = ax2.plot(x, schedule_df["累计投资者收益"], label="累计投资者收益", color="#2C6B6B", marker='o')
-                ax2.set_ylabel("累计收益（元）", fontsize=12, color="#2C6B6B")
-                ax2.tick_params(axis='y', labelcolor="#2C6B6B")
-
-                # 合并图例
-                bars_labels = ax1.get_legend_handles_labels()
-                lines_labels = ax2.get_legend_handles_labels()
-                handles = bars_labels[0] + lines_labels[0]
-                labels = bars_labels[1] + lines_labels[1]
-                ax1.legend(handles, labels, loc="upper left")
+                # 右轴：累计投资者收益（折线图）
+                ax3b = ax3.twinx()
+                ax3b.plot(schedule_df["场次时间"], schedule_df["累计投资者收益"], label="累计投资者收益", color="#2C6B6B", marker='o')
+                ax3b.set_ylabel("累计收益（元）", fontsize=12, color="#2C6B6B")
+                ax3b.tick_params(axis='y', labelcolor="#2C6B6B")
 
                 # 标题和网格
-                ax1.set_title("投资者收益趋势", fontsize=14, fontweight="bold")
-                ax1.grid(True, linestyle="--", alpha=0.7)
-                fig.tight_layout()
-                st.pyplot(fig)
-
+                ax3.set_title("投资者收益趋势", fontsize=14, fontweight="bold")
+                ax3.grid(True, linestyle="--", alpha=0.7)
+                fig3.tight_layout()
+                st.pyplot(fig3)
 
 
                 
                 # 图 4：运营者收益
                 st.subheader("💹 运营者收益趋势（双轴）")
+                fig4, ax4 = plt.subplots(figsize=(12, 5))
 
-                x = np.arange(len(schedule_df))  # 数值型 x 轴
-                labels = schedule_df["场次时间"].dt.strftime("%m-%d")
+                # 左轴：每场运营者收益（条形图）
+                ax4.bar(schedule_df["场次时间"], schedule_df["运营者收益"], label="每场运营者收益", color=colors["operator"])
+                ax4.set_ylabel("每场收益（元）", fontsize=12, color=colors["operator"])
+                ax4.tick_params(axis='y', labelcolor=colors["operator"])
+                ax4.tick_params(axis='x', rotation=45)
 
-                fig, ax1 = plt.subplots(figsize=(12, 5))
-
-                # 左轴：每场收益（柱状图）
-                bar = ax1.bar(x - 0.2, schedule_df["运营者收益"], width=0.4, label="每场运营者收益", color=colors["operator"], alpha=0.8)
-                ax1.set_ylabel("每场收益（元）", fontsize=12, color=colors["operator"])
-                ax1.tick_params(axis='y', labelcolor=colors["operator"])
-                ax1.set_xticks(x)
-                ax1.set_xticklabels(labels, rotation=45)
-
-                # 右轴：累计收益（折线图）
-                ax2 = ax1.twinx()
-                line, = ax2.plot(x, schedule_df["累计运营者收益"], label="累计运营者收益", color="#1B5E20", marker='o')
-                ax2.set_ylabel("累计收益（元）", fontsize=12, color="#1B5E20")
-                ax2.tick_params(axis='y', labelcolor="#1B5E20")
-
-                # 合并图例
-                lines_labels = [*ax1.get_legend_handles_labels(), *ax2.get_legend_handles_labels()]
-                handles, labels = zip(*lines_labels)
-                ax1.legend(handles, labels, loc="upper left")
+                # 右轴：累计运营者收益（折线图）
+                ax4b = ax4.twinx()
+                ax4b.plot(schedule_df["场次时间"], schedule_df["累计运营者收益"], label="累计运营者收益", color="#1B5E20", marker='s')
+                ax4b.set_ylabel("累计收益（元）", fontsize=12, color="#1B5E20")
+                ax4b.tick_params(axis='y', labelcolor="#1B5E20")
 
                 # 标题和网格
-                ax1.set_title("运营者收益趋势", fontsize=14, fontweight="bold")
-                ax1.grid(True, linestyle="--", alpha=0.7)
-                fig.tight_layout()
-                st.pyplot(fig)
+                ax4.set_title("运营者收益趋势", fontsize=14, fontweight="bold")
+                ax4.grid(True, linestyle="--", alpha=0.7)
+                fig4.tight_layout()
+                st.pyplot(fig4)
 
+
+
+
+    
                 # 💵 收益分析
                 st.subheader("💵 成本与收益分析")
                 num_shows = len(schedule_df)
