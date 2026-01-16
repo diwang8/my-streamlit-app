@@ -35,12 +35,15 @@ colors = {
 }
 
 def format_ax(ax, title, xlabel, ylabel):
-    ax.set_title(title, fontsize=14, fontweight="bold")
-    ax.set_xlabel(xlabel, fontsize=12)
-    ax.set_ylabel(ylabel, fontsize=12)
+    ax.set_title(title, fontsize=14, fontweight="bold", color="black")
+    ax.set_xlabel(xlabel, fontsize=12, color="black")
+    ax.set_ylabel(ylabel, fontsize=12, color="black")
     ax.grid(True, linestyle="--", alpha=0.7)
     ax.legend(loc="upper left")
+    ax.tick_params(axis='x', labelsize=10, labelcolor="black")
+    ax.tick_params(axis='y', labelsize=10, labelcolor="black")
     ax.yaxis.set_major_formatter(mtick.StrMethodFormatter('{x:,.0f}'))
+
 
 
 # 🎉 节假日列表（2025-12-04 起未来三年）
@@ -989,7 +992,7 @@ if uploaded_file:
                 # 图 1：每场预测营收（条形图）
                 st.subheader("📊 每场预测营收（条形图）")
                 fig1, ax1 = plt.subplots(figsize=(12, 5))
-                ax1.bar(x, schedule_df["预测营收"], color=colors["predicted"], width=0.6)
+                ax1.bar(x, schedule_df["预测营收"], color="#F28E2B", width=0.6, alpha=1.0, zorder=1)
                 ax1.set_xticks(x[::xtick_step])
                 ax1.set_xticklabels(schedule_df["场次时间"].dt.strftime("%Y-%m-%d")[::xtick_step], rotation=45)
                 format_ax(ax1, "每场次预测营收", "场次时间", "预测营收（元）")
@@ -1000,8 +1003,8 @@ if uploaded_file:
                 # 图 2：累计营收 vs 累计成本（折线图）
                 st.subheader("📈 累计营收 vs 累计成本")
                 fig2, ax2 = plt.subplots(figsize=(12, 5))
-                ax2.plot(x, schedule_df["累计预测营收"], marker='o', label="累计预测营收", color=colors["predicted"])
-                ax2.plot(x, schedule_df["累计成本"], marker='s', label="累计成本", color=colors["cost"])
+                ax2.plot(x, schedule_df["累计预测营收"], marker='o', label="累计预测营收", color="#F28E2B", zorder=2)
+                ax2.plot(x, schedule_df["累计成本"], marker='s', label="累计成本", color="#E15759", zorder=2)
                 ax2.set_xticks(x[::xtick_step])
                 ax2.set_xticklabels(schedule_df["场次时间"].dt.strftime("%Y-%m-%d")[::xtick_step], rotation=45)
                 format_ax(ax2, "累计营收 vs 累计成本", "场次时间", "金额（元）")
@@ -1013,18 +1016,15 @@ if uploaded_file:
                 st.subheader("💹 投资者收益趋势（双轴）")
                 fig3, ax3 = plt.subplots(figsize=(12, 5))
 
-                # 左轴：每场投资者收益（条形图）
-                ax3.bar(x, schedule_df["投资者收益"], label="每场投资者收益", color=colors["investor"], width=0.6)
-                ax3.set_ylabel("每场收益（元）", fontsize=12, color=colors["investor"])
-                ax3.tick_params(axis='y', labelcolor=colors["investor"])
-                ax3.set_xticks(x[::xtick_step])
-                ax3.set_xticklabels(schedule_df["场次时间"].dt.strftime("%Y-%m-%d")[::xtick_step], rotation=45)
+                # 条形图
+                ax3.bar(x, schedule_df["投资者收益"], label="每场投资者收益", color="#2E7D32", width=0.6, alpha=1.0, zorder=1)
+                ax3.set_ylabel("每场收益（元）", fontsize=12, color="black")
+                ax3.tick_params(axis='y', labelcolor="black", labelsize=10)
 
-                # 右轴：累计投资者收益（折线图）
-                ax3b = ax3.twinx()
-                ax3b.plot(x, schedule_df["累计投资者收益"], label="累计投资者收益", color="#2C6B6B", marker='o')
-                ax3b.set_ylabel("累计收益（元）", fontsize=12, color="#2C6B6B")
-                ax3b.tick_params(axis='y', labelcolor="#2C6B6B")
+                # 折线图
+                ax3b.plot(x, schedule_df["累计投资者收益"], label="累计投资者收益", color="#004D40", marker='o', zorder=2)
+                ax3b.set_ylabel("累计收益（元）", fontsize=12, color="black")
+                ax3b.tick_params(axis='y', labelcolor="black", labelsize=10)
 
                 # 标题和网格
                 ax3.set_title("投资者收益趋势", fontsize=14, fontweight="bold")
@@ -1037,18 +1037,15 @@ if uploaded_file:
                 st.subheader("💹 运营者收益趋势（双轴）")
                 fig4, ax4 = plt.subplots(figsize=(12, 5))
 
-                # 左轴：每场运营者收益（条形图）
-                ax4.bar(x, schedule_df["运营者收益"], label="每场运营者收益", color="#2E7D32", width=0.6)
-                ax4.set_ylabel("每场收益（元）", fontsize=12, color=colors["operator"])
-                ax4.tick_params(axis='y', labelcolor=colors["operator"])
-                ax4.set_xticks(x[::xtick_step])
-                ax4.set_xticklabels(schedule_df["场次时间"].dt.strftime("%Y-%m-%d")[::xtick_step], rotation=45)
+                # 条形图
+                ax4.bar(x, schedule_df["运营者收益"], label="每场运营者收益", color="#2E7D32", width=0.6, alpha=1.0, zorder=1)
+                ax4.set_ylabel("每场收益（元）", fontsize=12, color="black")
+                ax4.tick_params(axis='y', labelcolor="black", labelsize=10)
 
-                # 右轴：累计运营者收益（折线图）
-                ax4b = ax4.twinx()
-                ax4b.plot(x, schedule_df["累计运营者收益"], label="累计运营者收益", color="#1B5E20", marker='s')
-                ax4b.set_ylabel("累计收益（元）", fontsize=12, color="#1B5E20")
-                ax4b.tick_params(axis='y', labelcolor="#1B5E20")
+                # 折线图
+                ax4b.plot(x, schedule_df["累计运营者收益"], label="累计运营者收益", color="#1B5E20", marker='s', zorder=2)
+                ax4b.set_ylabel("累计收益（元）", fontsize=12, color="black")
+                ax4b.tick_params(axis='y', labelcolor="black", labelsize=10)
 
                 # 标题和网格
                 ax4.set_title("运营者收益趋势", fontsize=14, fontweight="bold")
