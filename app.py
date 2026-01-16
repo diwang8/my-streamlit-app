@@ -607,61 +607,63 @@ if uploaded_file:
     score = r2_score(y_test, y_pred)
     st.success(f"模型 R² 分数：{score:.4f}")
 
-    st.markdown("---")
-    st.subheader("🎯 选择已有剧目进行预测")
-    selected_name = st.selectbox("选择剧目", df["话剧名称"].unique())
-    selected_rows = df[df["话剧名称"] == selected_name].copy()
+    # 🔒 隐藏预测现有剧目的功能（用于模型测试）
+    if False:
+        st.markdown("---")
+        st.subheader("🎯 选择已有剧目进行预测")
+        selected_name = st.selectbox("选择剧目", df["话剧名称"].unique())
+        selected_rows = df[df["话剧名称"] == selected_name].copy()
 
-    if not selected_rows.empty:
-        # 特征处理
-        X_selected = selected_rows[feature_cols].copy()
-        X_selected = pd.get_dummies(X_selected)
-        X_selected = X_selected.reindex(columns=X.columns, fill_value=0)
+        if not selected_rows.empty:
+            # 特征处理
+            X_selected = selected_rows[feature_cols].copy()
+            X_selected = pd.get_dummies(X_selected)
+            X_selected = X_selected.reindex(columns=X.columns, fill_value=0)
 
-        # 预测
-        y_pred = model.predict(X_selected)
+            # 预测
+            y_pred = model.predict(X_selected)
 
-        # 添加预测结果
-        selected_rows["预测营收"] = y_pred
-        selected_rows = selected_rows.sort_values("场次时间")
-        # 添加累计列，避免 KeyError
-        selected_rows["累计实际营收"] = selected_rows["营业收入"].cumsum()
-        selected_rows["累计预测营收"] = selected_rows["预测营收"].cumsum()
-
-
-        # 图 1：单场次实际 vs 预测（条形图）
-        st.subheader("📊 单场次实际营收 vs 预测营收")
-        fig1, ax1 = plt.subplots(figsize=(12, 5))
-        width = 0.4
-        x = np.arange(len(selected_rows))
-
-        ax1.bar(x - width/2, selected_rows["营业收入"], width=width, label="实际营收", color=colors["actual"])
-        ax1.bar(x + width/2, selected_rows["预测营收"], width=width, label="预测营收", color=colors["predicted"])
-
-        ax1.set_xticks(x)
-        ax1.set_xticklabels(selected_rows["场次时间"].dt.strftime("%m-%d"), rotation=45)
-        format_ax(ax1, f"{selected_name} 单场次营收对比", "场次时间", "营收（元）")
-        fig1.tight_layout()
-        st.pyplot(fig1)
+            # 添加预测结果
+            selected_rows["预测营收"] = y_pred
+            selected_rows = selected_rows.sort_values("场次时间")
+            # 添加累计列，避免 KeyError
+            selected_rows["累计实际营收"] = selected_rows["营业收入"].cumsum()
+            selected_rows["累计预测营收"] = selected_rows["预测营收"].cumsum()
 
 
-        # 图 2：累计营收对比（折线图）
-        st.subheader("📈 累计实际营收 vs 累计预测营收")
-        fig2, ax2 = plt.subplots(figsize=(12, 5))
+            # 图 1：单场次实际 vs 预测（条形图）
+            st.subheader("📊 单场次实际营收 vs 预测营收")
+            fig1, ax1 = plt.subplots(figsize=(12, 5))
+            width = 0.4
+            x = np.arange(len(selected_rows))
 
-        ax2.plot(selected_rows["场次时间"], selected_rows["累计实际营收"], marker='o', label="累计实际营收", color=colors["actual"])
-        ax2.plot(selected_rows["场次时间"], selected_rows["累计预测营收"], marker='s', label="累计预测营收", color=colors["predicted"])
+            ax1.bar(x - width/2, selected_rows["营业收入"], width=width, label="实际营收", color=colors["actual"])
+            ax1.bar(x + width/2, selected_rows["预测营收"], width=width, label="预测营收", color=colors["predicted"])
 
-        ax2.tick_params(axis='x', rotation=45)
-        format_ax(ax2, f"{selected_name} 累计营收趋势对比", "场次时间", "累计营收（元）")
-        fig2.tight_layout()
-        st.pyplot(fig2)
+            ax1.set_xticks(x)
+            ax1.set_xticklabels(selected_rows["场次时间"].dt.strftime("%m-%d"), rotation=45)
+            format_ax(ax1, f"{selected_name} 单场次营收对比", "场次时间", "营收（元）")
+            fig1.tight_layout()
+            st.pyplot(fig1)
 
 
-    st.markdown("---")
-    # 初始化 session_state 控制预测执行
-    if "run_prediction" not in st.session_state:
-        st.session_state.run_prediction = False
+            # 图 2：累计营收对比（折线图）
+            st.subheader("📈 累计实际营收 vs 累计预测营收")
+            fig2, ax2 = plt.subplots(figsize=(12, 5))
+
+            ax2.plot(selected_rows["场次时间"], selected_rows["累计实际营收"], marker='o', label="累计实际营收", color=colors["actual"])
+            ax2.plot(selected_rows["场次时间"], selected_rows["累计预测营收"], marker='s', label="累计预测营收", color=colors["predicted"])
+
+            ax2.tick_params(axis='x', rotation=45)
+            format_ax(ax2, f"{selected_name} 累计营收趋势对比", "场次时间", "累计营收（元）")
+            fig2.tight_layout()
+            st.pyplot(fig2)
+
+
+        st.markdown("---")
+        # 初始化 session_state 控制预测执行
+        if "run_prediction" not in st.session_state:
+            st.session_state.run_prediction = False
 
     # 🆕 输入新剧信息进行预测
     with st.expander("🆕 输入新剧信息进行预测", expanded=True):
