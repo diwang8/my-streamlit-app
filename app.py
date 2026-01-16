@@ -23,6 +23,25 @@ from sklearn.multioutput import MultiOutputRegressor
 from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
 from datetime import datetime, timedelta
+import matplotlib.ticker as mtick
+plt.style.use("seaborn-whitegrid")
+
+colors = {
+    "actual": "#4E79A7",       # 蓝色
+    "predicted": "#F28E2B",    # 橙色
+    "cost": "#E15759",         # 红色
+    "investor": "#76B7B2",     # 青色
+    "operator": "#59A14F",     # 绿色
+}
+
+def format_ax(ax, title, xlabel, ylabel):
+    ax.set_title(title, fontsize=14, fontweight="bold")
+    ax.set_xlabel(xlabel, fontsize=12)
+    ax.set_ylabel(ylabel, fontsize=12)
+    ax.grid(True, linestyle="--", alpha=0.7)
+    ax.legend(loc="upper left")
+    ax.yaxis.set_major_formatter(mtick.StrMethodFormatter('{x:,.0f}'))
+
 
 # 🎉 节假日列表（2025-12-04 起未来三年）
 holiday_list = [
