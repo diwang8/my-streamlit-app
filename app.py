@@ -1034,7 +1034,7 @@ if uploaded_file:
                 fig4, ax4 = plt.subplots(figsize=(12, 5))
 
                 # 左轴：每场运营者收益（条形图）
-                ax4.bar(schedule_df["场次时间"], schedule_df["运营者收益"], label="每场运营者收益", color=colors["operator"])
+                ax4.bar(schedule_df["场次时间"], schedule_df["运营者收益"], label="每场运营者收益", color="#2E7D32")
                 ax4.set_ylabel("每场收益（元）", fontsize=12, color=colors["operator"])
                 ax4.tick_params(axis='y', labelcolor=colors["operator"])
                 ax4.tick_params(axis='x', rotation=45)
