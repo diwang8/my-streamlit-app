@@ -346,6 +346,10 @@ st.markdown("""
 
 st.title("🎭 剧目营收预测系统")
 
+# ✅ 初始化 run_prediction 状态，防止 AttributeError
+if "run_prediction" not in st.session_state:
+    st.session_state.run_prediction = False
+
 def collect_cost_inputs():
     st.markdown("## 💰 成本参数设置")
     st.markdown("### 一次性投入成本")
@@ -789,13 +793,17 @@ if uploaded_file:
         # ✅ 初始化 session_state 中的当前模型类型及滑块值
         if "current_model_type" not in st.session_state:
             st.session_state.current_model_type = selected_model_type
-            feature_weights_all = get_feature_weights(tag_values)
-            raw_default_weights = feature_weights_all.get(selected_model_type, {})
-            for feature in X.columns:
-                init_slider_state(f"slider_{feature}", raw_default_weights.get(feature, 1.0))
-            for tag in tag_values:
-                init_slider_state(f"slider_{tag}", raw_default_weights.get(tag, 1.0))
-            init_slider_state("slider_题材标签", next(iter(raw_default_weights.values()), 1.0))
+
+        feature_weights_all = get_feature_weights(tag_values)
+        raw_default_weights = feature_weights_all.get(selected_model_type, {})
+
+        # ✅ 初始化或更新滑块值（首次或切换模型时）
+        for feature in X.columns:
+            st.session_state[f"slider_{feature}"] = raw_default_weights.get(feature, 1.0)
+        for tag in tag_values:
+            st.session_state[f"slider_{tag}"] = raw_default_weights.get(tag, 1.0)
+        st.session_state["slider_题材标签"] = next(iter(raw_default_weights.values()), 1.0)
+
 
 
 
@@ -821,10 +829,11 @@ if uploaded_file:
             st.session_state.current_model_type = selected_model_type
             raw_default_weights = feature_weights_all.get(selected_model_type, {})
             for feature in X.columns:
-                init_slider_state(f"slider_{feature}", raw_default_weights.get(feature, 1.0))
+                st.session_state[f"slider_{feature}"] = raw_defaault_weights.get(feature, 1.0)
             for tag in tag_values:
-                init_slider_state(f"slider_{tag}", raw_default_weights.get(tag, 1.0))
-            init_slider_state("slider_题材标签", next(iter(raw_default_weights.values()), 1.0))
+                st.session_state[f"slider_{tag}"] = raw_default_weights.get(tag, 1.0)
+            st.session_state["slider_题材标签"] = next(iter(raw_default_weights.values()), 1.0)
+
 
 
         # ✅ 重新获取 default_weights（确保滑块 value 用的是最新的）
