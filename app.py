@@ -1009,27 +1009,34 @@ if uploaded_file:
                 x = np.arange(len(schedule_df))
                 xtick_step = max(len(x) // 20, 1)  # 控制最多显示 20 个刻度，防止过密
 
-                # 图 1：每场预测营收（条形图）
-                st.subheader("📊 每场预测营收（条形图）")
-                fig1, ax1 = plt.subplots(figsize=(12, 5))
-                ax1.bar(x, schedule_df["预测营收"], color="#F28E2B", width=1, alpha=1.0, zorder=1)
+                # 📊 合并图表：每场预测营收（条形图） + 累计营收/成本（折线图）
+                st.subheader("📊 每场预测营收 + 累计营收与成本趋势（双轴）")
+                fig, ax1 = plt.subplots(figsize=(12, 5))
+
+                # 左轴：条形图（每场预测营收，蓝色）
+                ax1.bar(x, schedule_df["预测营收"], color=colors["actual"], width=1, alpha=1.0, label="每场预测营收", zorder=1)
+                ax1.set_ylabel("每场预测营收（元）", fontsize=14, fontweight="bold", color="#000000")
+                ax1.tick_params(axis='y', labelcolor="#000000", labelsize=12)
                 ax1.set_xticks(x[::xtick_step])
                 ax1.set_xticklabels(schedule_df["场次时间"].dt.strftime("%Y-%m-%d")[::xtick_step], rotation=45)
-                format_ax(ax1, "每场次预测营收", "场次时间", "预测营收（元）")
-                fig1.tight_layout()
-                st.pyplot(fig1)
 
+                # 右轴：折线图（累计营收和累计成本）
+                ax2 = ax1.twinx()
+                ax2.plot(x, schedule_df["累计预测营收"], label="累计预测营收", color=colors["predicted"], marker='o', zorder=2)
+                ax2.plot(x, schedule_df["累计成本"], label="累计成本", color=colors["cost"], marker='s', zorder=2)
+                ax2.set_ylabel("累计金额（元）", fontsize=14, fontweight="bold", color="#000000")
+                ax2.tick_params(axis='y', labelcolor="#000000", labelsize=12)
+                ax2.yaxis.set_major_formatter(mtick.StrMethodFormatter('{x:,.0f}'))
 
-                # 图 2：累计营收 vs 累计成本（折线图）
-                st.subheader("📈 累计营收 vs 累计成本")
-                fig2, ax2 = plt.subplots(figsize=(12, 5))
-                ax2.plot(x, schedule_df["累计预测营收"], marker='o', label="累计预测营收", color="#F28E2B", zorder=2)
-                ax2.plot(x, schedule_df["累计成本"], marker='s', label="累计成本", color="#E15759", zorder=2)
-                ax2.set_xticks(x[::xtick_step])
-                ax2.set_xticklabels(schedule_df["场次时间"].dt.strftime("%Y-%m-%d")[::xtick_step], rotation=45)
-                format_ax(ax2, "累计营收 vs 累计成本", "场次时间", "金额（元）")
-                fig2.tight_layout()
-                st.pyplot(fig2)
+                # 标题和图例
+                ax1.set_title("每场预测营收 + 累计营收与成本趋势", fontsize=16, fontweight="bold", color="#000000")
+                ax1.grid(True, linestyle="--", alpha=0.7)
+                lines1, labels1 = ax1.get_legend_handles_labels()
+                lines2, labels2 = ax2.get_legend_handles_labels()
+                ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
+
+                fig.tight_layout()
+                st.pyplot(fig)
 
 
                 # 图 3：投资者收益趋势（双轴）
