@@ -35,13 +35,13 @@ colors = {
 }
 
 def format_ax(ax, title, xlabel, ylabel):
-    ax.set_title(title, fontsize=14, fontweight="bold", color="#000000")  # 深黑
-    ax.set_xlabel(xlabel, fontsize=12, fontweight="bold", color="#000000")
-    ax.set_ylabel(ylabel, fontsize=12, fontweight="bold", color="#000000")
+    ax.set_title(title, fontsize=20, fontweight="bold", color="#000000")  # 深黑
+    ax.set_xlabel(xlabel, fontsize=18, fontweight="bold", color="#000000")
+    ax.set_ylabel(ylabel, fontsize=18, fontweight="bold", color="#000000")
     ax.grid(True, linestyle="--", alpha=0.7)
     ax.legend(loc="upper left")
-    ax.tick_params(axis='x', labelsize=10, labelcolor="#000000", width=1.2)
-    ax.tick_params(axis='y', labelsize=10, labelcolor="#000000", width=1.2)
+    ax.tick_params(axis='x', labelsize=14, labelcolor="#000000", width=1.2)
+    ax.tick_params(axis='y', labelsize=14, labelcolor="#000000", width=1.2)
     ax.yaxis.set_major_formatter(mtick.StrMethodFormatter('{x:,.0f}'))  # 千位分隔
 
 
