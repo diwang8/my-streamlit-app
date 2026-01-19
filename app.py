@@ -829,7 +829,7 @@ if uploaded_file:
             st.session_state.current_model_type = selected_model_type
             raw_default_weights = feature_weights_all.get(selected_model_type, {})
             for feature in X.columns:
-                st.session_state[f"slider_{feature}"] = raw_defaault_weights.get(feature, 1.0)
+                st.session_state[f"slider_{feature}"] = raw_default_weights.get(feature, 1.0)
             for tag in tag_values:
                 st.session_state[f"slider_{tag}"] = raw_default_weights.get(tag, 1.0)
             st.session_state["slider_题材标签"] = next(iter(raw_default_weights.values()), 1.0)
