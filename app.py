@@ -83,6 +83,11 @@ holiday_list = [
 
 holiday_list = [pd.to_datetime(d) for d in holiday_list]
 
+def init_slider_state(key, default):
+    if key not in st.session_state:
+        st.session_state[key] = default
+
+
 # 📅 场次生成函数
 def generate_show_schedule(start_date, end_date, weekly_plan):
     """
@@ -787,10 +792,11 @@ if uploaded_file:
             feature_weights_all = get_feature_weights(tag_values)
             raw_default_weights = feature_weights_all.get(selected_model_type, {})
             for feature in X.columns:
-                st.session_state[f"slider_{feature}"] = raw_default_weights.get(feature, 1.0)
+                init_slider_state(f"slider_{feature}", raw_default_weights.get(feature, 1.0))
             for tag in tag_values:
-                st.session_state[f"slider_{tag}"] = raw_default_weights.get(tag, 1.0)
-            st.session_state["slider_题材标签"] = next(iter(raw_default_weights.values()), 1.0)
+                init_slider_state(f"slider_{tag}", raw_default_weights.get(tag, 1.0))
+            init_slider_state("slider_题材标签", next(iter(raw_default_weights.values()), 1.0))
+
 
 
         for reason in auto_reasons:
@@ -815,10 +821,11 @@ if uploaded_file:
             st.session_state.current_model_type = selected_model_type
             raw_default_weights = feature_weights_all.get(selected_model_type, {})
             for feature in X.columns:
-                st.session_state[f"slider_{feature}"] = raw_default_weights.get(feature, 1.0)
+                init_slider_state(f"slider_{feature}", raw_default_weights.get(feature, 1.0))
             for tag in tag_values:
-                st.session_state[f"slider_{tag}"] = raw_default_weights.get(tag, 1.0)
-            st.session_state["slider_题材标签"] = next(iter(raw_default_weights.values()), 1.0)
+                init_slider_state(f"slider_{tag}", raw_default_weights.get(tag, 1.0))
+            init_slider_state("slider_题材标签", next(iter(raw_default_weights.values()), 1.0))
+
 
         # ✅ 重新获取 default_weights（确保滑块 value 用的是最新的）
         raw_default_weights = feature_weights_all.get(selected_model_type, {})
@@ -1136,3 +1143,4 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"❌ 预测时出错：{e}")
                 st.dataframe(X_new)
+
